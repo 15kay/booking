@@ -46,7 +46,7 @@ $page_title = isset($page_titles[$current_page]) ? $page_titles[$current_page] :
                 <i class="fas fa-cog"></i> Settings
             </a>
             <div class="dropdown-divider"></div>
-            <a href="../auth/logout.php" class="dropdown-item logout">
+            <a href="#" onclick="confirmLogout(); return false;" class="dropdown-item logout">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
         </div>

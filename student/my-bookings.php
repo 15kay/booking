@@ -55,6 +55,7 @@ $bookings = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - WSU Booking</title>
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/modals.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -160,41 +161,18 @@ $bookings = $stmt->fetchAll();
         </div>
     </div>
     
+    <?php include '../assets/includes/modals.php'; ?>
+    <script src="js/dashboard.js"></script>
+    <script src="../assets/js/modals.js"></script>
     <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.querySelector('.sidebar');
-        const headerLogo = document.getElementById('headerLogo');
-        const userMenuBtn = document.getElementById('userMenuBtn');
-        const userDropdown = document.getElementById('userDropdown');
-        const notificationBtn = document.getElementById('notificationBtn');
-        const notificationsDropdown = document.getElementById('notificationsDropdown');
-        
-        menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('closed');
-            headerLogo.style.display = sidebar.classList.contains('closed') ? 'flex' : 'none';
-        });
-        
-        userMenuBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('active');
-            notificationsDropdown.classList.remove('active');
-        });
-        
-        notificationBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationsDropdown.classList.toggle('active');
-            userDropdown.classList.remove('active');
-        });
-        
-        document.addEventListener('click', function() {
-            userDropdown.classList.remove('active');
-            notificationsDropdown.classList.remove('active');
-        });
-        
         function cancelBooking(bookingId) {
-            if(confirm('Are you sure you want to cancel this booking?')) {
-                window.location.href = 'cancel-booking.php?id=' + bookingId;
-            }
+            showConfirmModal(
+                'Cancel Booking',
+                'Are you sure you want to cancel this booking? This action cannot be undone.',
+                function() {
+                    window.location.href = 'cancel-booking.php?id=' + bookingId;
+                }
+            );
         }
         
         function viewDetails(bookingId) {

@@ -199,10 +199,28 @@ if($selected_service) {
 
                             <div class="form-group">
                                 <label><i class="fas fa-calendar"></i> Preferred Date</label>
-                                <input type="date" name="booking_date" id="dateSelect"
-                                       min="<?php echo date('Y-m-d'); ?>" 
-                                       max="<?php echo date('Y-m-d', strtotime('+' . $service_details['max_advance_booking_days'] . ' days')); ?>" 
-                                       required>
+                                <input type="hidden" name="booking_date" id="dateSelect" required>
+                                <div id="calendarContainer">
+                                    <div class="calendar-header">
+                                        <button type="button" class="calendar-nav" id="prevMonth">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <span class="calendar-month" id="currentMonth"></span>
+                                        <button type="button" class="calendar-nav" id="nextMonth">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="calendar-grid" id="calendarGrid">
+                                        <div class="calendar-loading">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading available dates...
+                                        </div>
+                                    </div>
+                                    <div class="calendar-legend">
+                                        <span><span class="legend-dot available"></span> Available</span>
+                                        <span><span class="legend-dot selected"></span> Selected</span>
+                                        <span><span class="legend-dot unavailable"></span> Unavailable</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -234,43 +252,299 @@ if($selected_service) {
         </div>
     </div>
     
+    <style>
+        /* Calendar Styles */
+        #calendarContainer {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-month {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .calendar-nav {
+            background: var(--white);
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--dark);
+        }
+        
+        .calendar-nav:hover {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: var(--white);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #6b7280;
+            padding: 8px;
+            text-transform: uppercase;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--white);
+            border: 2px solid #e5e7eb;
+            color: #9ca3af;
+        }
+        
+        .calendar-day.available {
+            color: var(--dark);
+            border-color: #d1fae5;
+            background: #d1fae5;
+        }
+        
+        .calendar-day.available:hover {
+            background: #10b981;
+            border-color: #10b981;
+            color: var(--white);
+            transform: scale(1.05);
+        }
+        
+        .calendar-day.selected {
+            background: var(--blue);
+            border-color: var(--blue);
+            color: var(--white);
+            box-shadow: 0 0 0 4px rgba(29, 78, 216, 0.2);
+        }
+        
+        .calendar-day.today {
+            border-color: var(--blue);
+            border-width: 3px;
+        }
+        
+        .calendar-day.unavailable {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+        
+        .calendar-loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        .calendar-legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .calendar-legend span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .legend-dot.available {
+            background: #d1fae5;
+            border-color: #d1fae5;
+        }
+        
+        .legend-dot.selected {
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+        
+        .legend-dot.unavailable {
+            background: var(--white);
+            border-color: #e5e7eb;
+            opacity: 0.4;
+        }
+        
+        /* Responsive Calendar */
+        @media (max-width: 768px) {
+            #calendarContainer {
+                padding: 15px;
+            }
+            
+            .calendar-month {
+                font-size: 16px;
+            }
+            
+            .calendar-nav {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .calendar-grid {
+                gap: 4px;
+            }
+            
+            .calendar-day {
+                font-size: 12px;
+            }
+            
+            .calendar-day-header {
+                font-size: 10px;
+                padding: 4px;
+            }
+        }
+    </style>
+    
     <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.querySelector('.sidebar');
-        const headerLogo = document.getElementById('headerLogo');
-        const userMenuBtn = document.getElementById('userMenuBtn');
-        const userDropdown = document.getElementById('userDropdown');
-        const notificationBtn = document.getElementById('notificationBtn');
-        const notificationsDropdown = document.getElementById('notificationsDropdown');
-        
-        menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('closed');
-            headerLogo.style.display = sidebar.classList.contains('closed') ? 'flex' : 'none';
-        });
-        
-        userMenuBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('active');
-            notificationsDropdown.classList.remove('active');
-        });
-        
-        notificationBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationsDropdown.classList.toggle('active');
-            userDropdown.classList.remove('active');
-        });
-        
-        document.addEventListener('click', function() {
-            userDropdown.classList.remove('active');
-            notificationsDropdown.classList.remove('active');
-        });
-        
-        // Available time slots functionality
+        // Calendar and booking functionality
         const staffSelect = document.getElementById('staffSelect');
         const dateSelect = document.getElementById('dateSelect');
         const timeSlotSelect = document.getElementById('timeSlotSelect');
         const loadingSlots = document.getElementById('loadingSlots');
         const serviceId = <?php echo $selected_service ? $selected_service : 'null'; ?>;
+        
+        let currentMonth = new Date();
+        let availableDates = [];
+        let selectedDate = null;
+        
+        // Calendar functions
+        function renderCalendar() {
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+            const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+            
+            document.getElementById('currentMonth').textContent = 
+                currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay(); // 0 = Sunday
+            const daysInMonth = lastDay.getDate();
+            
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            
+            // Day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'calendar-day-header';
+                header.textContent = day;
+                grid.appendChild(header);
+            });
+            
+            // Empty cells before first day
+            for(let i = 0; i < startDay; i++) {
+                const empty = document.createElement('div');
+                grid.appendChild(empty);
+            }
+            
+            // Days
+            const today = new Date().toISOString().split('T')[0];
+            for(let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+                dayEl.textContent = day;
+                dayEl.dataset.date = dateStr;
+                
+                if(dateStr === today) {
+                    dayEl.classList.add('today');
+                }
+                
+                if(availableDates.includes(dateStr)) {
+                    dayEl.classList.add('available');
+                    dayEl.addEventListener('click', () => selectDate(dateStr));
+                } else if(new Date(dateStr) >= new Date(today)) {
+                    dayEl.classList.add('unavailable');
+                }
+                
+                if(selectedDate === dateStr) {
+                    dayEl.classList.add('selected');
+                }
+                
+                grid.appendChild(dayEl);
+            }
+        }
+        
+        function selectDate(date) {
+            selectedDate = date;
+            dateSelect.value = date;
+            renderCalendar();
+            loadAvailableSlots();
+        }
+        
+        function loadAvailableDates() {
+            const staffId = staffSelect?.value;
+            if(!staffId || !serviceId) {
+                const grid = document.getElementById('calendarGrid');
+                grid.innerHTML = '<div class="calendar-loading" style="color: #6b7280;"><i class="fas fa-info-circle"></i> Please select a staff member first</div>';
+                return;
+            }
+            
+            const year = currentMonth.getFullYear();
+            const month = String(currentMonth.getMonth() + 1).padStart(2, '0');
+            const monthStr = `${year}-${month}`;
+            
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '<div class="calendar-loading"><i class="fas fa-spinner fa-spin"></i> Loading available dates...</div>';
+            
+            fetch(`get-available-dates.php?staff_id=${staffId}&service_id=${serviceId}&month=${monthStr}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.error) {
+                        console.error('Error:', data.error);
+                        grid.innerHTML = `<div class="calendar-loading" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> ${data.error}</div>`;
+                        return;
+                    }
+                    availableDates = data.available_dates || [];
+                    renderCalendar();
+                    
+                    if(availableDates.length === 0) {
+                        grid.innerHTML = '<div class="calendar-loading" style="color: #f59e0b;"><i class="fas fa-calendar-times"></i> No available dates this month. Try another month.</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    grid.innerHTML = '<div class="calendar-loading" style="color: #ef4444;"><i class="fas fa-exclamation-circle"></i> Error loading dates. Please try again.</div>';
+                });
+        }
         
         function loadAvailableSlots() {
             const staffId = staffSelect?.value;
@@ -310,10 +584,37 @@ if($selected_service) {
                 });
         }
         
-        if(staffSelect && dateSelect) {
-            staffSelect.addEventListener('change', loadAvailableSlots);
-            dateSelect.addEventListener('change', loadAvailableSlots);
+        // Event listeners
+        if(staffSelect) {
+            staffSelect.addEventListener('change', () => {
+                selectedDate = null;
+                dateSelect.value = '';
+                timeSlotSelect.innerHTML = '<option value="">Select date first</option>';
+                timeSlotSelect.disabled = true;
+                loadAvailableDates();
+            });
+        }
+        
+        document.getElementById('prevMonth')?.addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            loadAvailableDates();
+        });
+        
+        document.getElementById('nextMonth')?.addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            loadAvailableDates();
+        });
+        
+        // Initialize calendar if on booking step
+        if(serviceId && staffSelect) {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '<div class="calendar-loading" style="color: #6b7280;"><i class="fas fa-info-circle"></i> Please select a staff member to view available dates</div>';
         }
     </script>
+    
+    <?php include '../assets/includes/modals.php'; ?>
+    <link rel="stylesheet" href="../assets/css/modals.css">
+    <script src="../assets/js/modals.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

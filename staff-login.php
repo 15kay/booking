@@ -1,7 +1,7 @@
 <?php
 session_start();
-if(isset($_SESSION['student_id'])) {
-    header('Location: student/index.php');
+if(isset($_SESSION['staff_id'])) {
+    header('Location: staff/index.php');
     exit();
 }
 ?>
@@ -10,7 +10,7 @@ if(isset($_SESSION['student_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSU Booking System - Student Login</title>
+    <title>WSU Booking System - Staff Login</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -20,28 +20,28 @@ if(isset($_SESSION['student_id'])) {
             <div class="logo-section">
                 <img src="logo.png" alt="WSU Logo" class="logo-img">
                 <h1>Walter Sisulu University</h1>
-                <p>Student Services Booking System</p>
+                <p>Staff Services Booking System</p>
             </div>
             <div class="features">
                 <div class="feature-item">
                     <i class="fas fa-calendar-check"></i>
-                    <span>Book Appointments</span>
+                    <span>Manage Appointments</span>
                 </div>
                 <div class="feature-item">
                     <i class="fas fa-clock"></i>
-                    <span>Manage Your Schedule</span>
+                    <span>Schedule Management</span>
                 </div>
                 <div class="feature-item">
-                    <i class="fas fa-bell"></i>
-                    <span>Get Reminders</span>
+                    <i class="fas fa-users"></i>
+                    <span>Student Management</span>
                 </div>
             </div>
         </div>
         
         <div class="login-right">
             <div class="login-box">
-                <h2>Student Login</h2>
-                <p class="subtitle">Access your booking dashboard</p>
+                <h2>Staff Login</h2>
+                <p class="subtitle">Access your staff dashboard</p>
                 
                 <?php if(isset($_GET['error'])): ?>
                     <div class="alert alert-error">
@@ -57,13 +57,13 @@ if(isset($_SESSION['student_id'])) {
                     </div>
                 <?php endif; ?>
                 
-                <form action="auth/login.php" method="POST" id="loginForm">
+                <form action="auth/staff-login.php" method="POST" id="loginForm">
                     <div class="form-group">
-                        <label for="student_id">
-                            <i class="fas fa-id-card"></i> Student ID
+                        <label for="staff_id">
+                            <i class="fas fa-id-card"></i> Staff ID
                         </label>
-                        <input type="text" id="student_id" name="student_id" 
-                               placeholder="Enter your student ID" required>
+                        <input type="text" id="staff_id" name="staff_id" 
+                               placeholder="Enter your staff ID" required>
                     </div>
                     
                     <div class="form-group">
@@ -88,8 +88,7 @@ if(isset($_SESSION['student_id'])) {
                 </form>
                 
                 <div class="register-link">
-                    Staff member? <a href="staff-login.php">Login here</a> | 
-                    Admin? <a href="admin-login.php">Login here</a>
+                    Student? <a href="index.php">Login here</a>
                 </div>
             </div>
         </div>

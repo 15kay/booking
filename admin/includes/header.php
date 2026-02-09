@@ -2,10 +2,12 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 $page_titles = [
     'index.php' => 'Dashboard',
-    'appointments.php' => 'Appointments',
-    'schedule.php' => 'Schedule',
-    'students.php' => 'Students',
-    'profile.php' => 'Profile',
+    'users.php' => 'User Management',
+    'staff-management.php' => 'Staff Management',
+    'students-management.php' => 'Student Management',
+    'services.php' => 'Services',
+    'bookings.php' => 'Bookings',
+    'reports.php' => 'Reports',
     'settings.php' => 'Settings'
 ];
 $page_title = isset($page_titles[$current_page]) ? $page_titles[$current_page] : 'Dashboard';
@@ -24,16 +26,16 @@ $page_title = isset($page_titles[$current_page]) ? $page_titles[$current_page] :
     <div class="header-right">
         <button class="notification-btn" id="notificationBtn">
             <i class="fas fa-bell"></i>
-            <span class="badge">3</span>
+            <span class="badge">5</span>
         </button>
         
         <div class="user-menu" id="userMenuBtn">
             <div class="user-info">
-                <span class="user-name"><?php echo htmlspecialchars($_SESSION['first_name'] . ' ' . $_SESSION['last_name']); ?></span>
-                <span class="user-id"><?php echo htmlspecialchars($_SESSION['staff_number']); ?></span>
+                <span class="user-name"><?php echo htmlspecialchars($_SESSION['admin_name']); ?></span>
+                <span class="user-id"><?php echo htmlspecialchars($_SESSION['admin_role']); ?></span>
             </div>
             <div class="user-avatar">
-                <i class="fas fa-user-circle"></i>
+                <i class="fas fa-user-shield"></i>
             </div>
         </div>
         
@@ -59,23 +61,23 @@ $page_title = isset($page_titles[$current_page]) ? $page_titles[$current_page] :
             </div>
             <div class="notifications-list">
                 <a href="#" class="notification-item unread">
-                    <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-user-plus"></i>
                     <div>
-                        <p>New booking request received</p>
-                        <span>2 hours ago</span>
+                        <p>New staff member registered</p>
+                        <span>1 hour ago</span>
                     </div>
                 </a>
                 <a href="#" class="notification-item unread">
-                    <i class="fas fa-calendar"></i>
+                    <i class="fas fa-exclamation-triangle"></i>
                     <div>
-                        <p>Reminder: Appointment tomorrow at 10:00 AM</p>
-                        <span>5 hours ago</span>
+                        <p>System maintenance required</p>
+                        <span>3 hours ago</span>
                     </div>
                 </a>
                 <a href="#" class="notification-item">
-                    <i class="fas fa-info-circle"></i>
+                    <i class="fas fa-chart-line"></i>
                     <div>
-                        <p>Student cancelled appointment</p>
+                        <p>Weekly report generated</p>
                         <span>1 day ago</span>
                     </div>
                 </a>

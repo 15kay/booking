@@ -27,6 +27,60 @@ $stmt = $conn->prepare("SELECT COUNT(*) as completed FROM bookings WHERE student
 $stmt->execute([$_SESSION['student_id']]);
 $completed_bookings = $stmt->fetch()['completed'];
 
+// Get booking statistics for success score
+$stmt = $conn->prepare("
+    SELECT 
+        COUNT(*) as total_bookings,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_sessions,
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelled_sessions,
+        COUNT(CASE WHEN status = 'no_show' THEN 1 END) as no_show_sessions
+    FROM bookings 
+    WHERE student_id = ?
+");
+$stmt->execute([$_SESSION['student_id']]);
+$booking_stats = $stmt->fetch();
+
+// Calculate success score
+$success_score = 0;
+if($booking_stats['total_bookings'] > 0) {
+    $completion_rate = ($booking_stats['completed_sessions'] / $booking_stats['total_bookings']) * 100;
+    $engagement_level = min(100, ($booking_stats['total_bookings'] / 10) * 100);
+    $no_show_penalty = ($booking_stats['no_show_sessions'] * 10);
+    $cancelled_penalty = ($booking_stats['cancelled_sessions'] * 5);
+    
+    $success_score = max(0, min(100, 
+        ($completion_rate * 0.5) + 
+        ($engagement_level * 0.3) + 
+        (20) - 
+        $no_show_penalty - 
+        $cancelled_penalty
+    ));
+}
+$success_score = round($success_score);
+
+// Determine score color and label
+if($success_score >= 80) {
+    $score_color = '#10b981';
+    $score_bg = '#d1fae5';
+    $score_label = 'Excellent';
+    $score_icon = 'fa-star';
+} elseif($success_score >= 60) {
+    $score_color = '#2563eb';
+    $score_bg = '#dbeafe';
+    $score_label = 'Good';
+    $score_icon = 'fa-thumbs-up';
+} elseif($success_score >= 40) {
+    $score_color = '#f59e0b';
+    $score_bg = '#fef3c7';
+    $score_label = 'Fair';
+    $score_icon = 'fa-hand-paper';
+} else {
+    $score_color = '#ef4444';
+    $score_bg = '#fee2e2';
+    $score_label = 'Needs Outreach';
+    $score_icon = 'fa-exclamation-triangle';
+}
+
 // Get upcoming bookings
 $stmt = $conn->prepare("
     SELECT b.*, s.service_name, st.first_name, st.last_name 
@@ -47,6 +101,7 @@ $upcoming_bookings = $stmt->fetchAll();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - WSU Booking</title>
     <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/modals.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -70,6 +125,48 @@ $upcoming_bookings = $stmt->fetchAll();
 
                 <!-- Stats Grid -->
                 <div class="stats-grid">
+                    <!-- Success Score Card -->
+                    <div class="stat-card readiness-card" style="background: linear-gradient(135deg, <?php echo $score_bg; ?> 0%, <?php echo $score_bg; ?> 100%); border: 2px solid <?php echo $score_color; ?>;">
+                        <div class="readiness-card-content">
+                            <div class="score-circle-small">
+                                <svg style="transform: rotate(-90deg);" width="100" height="100" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="8"/>
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="<?php echo $score_color; ?>" stroke-width="8" 
+                                            stroke-dasharray="<?php echo (2 * 3.14159 * 42); ?>" 
+                                            stroke-dashoffset="<?php echo (2 * 3.14159 * 42) * (1 - $success_score / 100); ?>"
+                                            stroke-linecap="round"/>
+                                </svg>
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                    <div class="score-number" style="font-weight: 700; font-size: 32px; color: <?php echo $score_color; ?>; line-height: 1;">
+                                        <?php echo $success_score; ?>
+                                    </div>
+                                    <div class="score-label" style="font-size: 11px; color: <?php echo $score_color; ?>; font-weight: 600;">
+                                        SCORE
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="score-info">
+                                <h3 style="color: <?php echo $score_color; ?>; font-size: 24px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas <?php echo $score_icon; ?>"></i>
+                                    Your Readiness Score
+                                </h3>
+                                <p style="color: <?php echo $score_color; ?>; font-weight: 600; font-size: 18px; margin-bottom: 12px;">
+                                    Engagement Level: <?php echo $score_label; ?>
+                                </p>
+                                <div class="score-metrics">
+                                    <span><i class="fas fa-calendar-check"></i> <?php echo $booking_stats['completed_sessions']; ?> sessions attended</span>
+                                    <span><i class="fas fa-calendar"></i> <?php echo $booking_stats['total_bookings']; ?> total bookings</span>
+                                    <?php if($booking_stats['no_show_sessions'] > 0): ?>
+                                        <span style="color: #ef4444;"><i class="fas fa-user-times"></i> <?php echo $booking_stats['no_show_sessions']; ?> missed</span>
+                                    <?php endif; ?>
+                                </div>
+                                <p class="info-text" style="font-size: 12px; color: #6b7280; margin-top: 10px; font-style: italic;">
+                                    <i class="fas fa-info-circle"></i> Track your engagement with support services before coursework begins
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="stat-card">
                         <div class="stat-icon blue">
                             <i class="fas fa-calendar"></i>
@@ -162,10 +259,10 @@ $upcoming_bookings = $stmt->fetchAll();
                             <i class="fas fa-list"></i>
                             <span>My Bookings</span>
                         </a>
-                        <a href="history.php" class="action-card">
+                        <!-- <a href="history.php" class="action-card">
                             <i class="fas fa-history"></i>
                             <span>History</span>
-                        </a>
+                        </a> -->
                         <a href="profile.php" class="action-card">
                             <i class="fas fa-user-edit"></i>
                             <span>Edit Profile</span>
@@ -200,41 +297,10 @@ $upcoming_bookings = $stmt->fetchAll();
     </div>
     <?php endif; ?>
     
+    <?php include '../assets/includes/modals.php'; ?>
+    <script src="js/dashboard.js"></script>
+    <script src="../assets/js/modals.js"></script>
     <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.querySelector('.sidebar');
-        const headerLogo = document.getElementById('headerLogo');
-        const userMenuBtn = document.getElementById('userMenuBtn');
-        const userDropdown = document.getElementById('userDropdown');
-        const notificationBtn = document.getElementById('notificationBtn');
-        const notificationsDropdown = document.getElementById('notificationsDropdown');
-        
-        // Sidebar toggle
-        menuToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('closed');
-            headerLogo.style.display = sidebar.classList.contains('closed') ? 'flex' : 'none';
-        });
-        
-        // User menu toggle
-        userMenuBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            userDropdown.classList.toggle('active');
-            notificationsDropdown.classList.remove('active');
-        });
-        
-        // Notifications toggle
-        notificationBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            notificationsDropdown.classList.toggle('active');
-            userDropdown.classList.remove('active');
-        });
-        
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', function() {
-            userDropdown.classList.remove('active');
-            notificationsDropdown.classList.remove('active');
-        });
-        
         // Success modal
         function closeModal() {
             const modal = document.getElementById('successModal');

@@ -1,7 +1,7 @@
 <?php
 session_start();
-if(isset($_SESSION['student_id'])) {
-    header('Location: student/index.php');
+if(isset($_SESSION['admin_id'])) {
+    header('Location: admin/index.php');
     exit();
 }
 ?>
@@ -10,7 +10,7 @@ if(isset($_SESSION['student_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WSU Booking System - Student Login</title>
+    <title>WSU Booking System - Admin Login</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -20,28 +20,28 @@ if(isset($_SESSION['student_id'])) {
             <div class="logo-section">
                 <img src="logo.png" alt="WSU Logo" class="logo-img">
                 <h1>Walter Sisulu University</h1>
-                <p>Student Services Booking System</p>
+                <p>System Administration Portal</p>
             </div>
             <div class="features">
                 <div class="feature-item">
-                    <i class="fas fa-calendar-check"></i>
-                    <span>Book Appointments</span>
+                    <i class="fas fa-users-cog"></i>
+                    <span>Manage Users</span>
                 </div>
                 <div class="feature-item">
-                    <i class="fas fa-clock"></i>
-                    <span>Manage Your Schedule</span>
+                    <i class="fas fa-chart-line"></i>
+                    <span>System Analytics</span>
                 </div>
                 <div class="feature-item">
-                    <i class="fas fa-bell"></i>
-                    <span>Get Reminders</span>
+                    <i class="fas fa-cogs"></i>
+                    <span>System Settings</span>
                 </div>
             </div>
         </div>
         
         <div class="login-right">
             <div class="login-box">
-                <h2>Student Login</h2>
-                <p class="subtitle">Access your booking dashboard</p>
+                <h2>Admin Login</h2>
+                <p class="subtitle">Access system administration dashboard</p>
                 
                 <?php if(isset($_GET['error'])): ?>
                     <div class="alert alert-error">
@@ -57,13 +57,13 @@ if(isset($_SESSION['student_id'])) {
                     </div>
                 <?php endif; ?>
                 
-                <form action="auth/login.php" method="POST" id="loginForm">
+                <form action="auth/admin-login.php" method="POST" id="loginForm">
                     <div class="form-group">
-                        <label for="student_id">
-                            <i class="fas fa-id-card"></i> Student ID
+                        <label for="username">
+                            <i class="fas fa-user-shield"></i> Username
                         </label>
-                        <input type="text" id="student_id" name="student_id" 
-                               placeholder="Enter your student ID" required>
+                        <input type="text" id="username" name="username" 
+                               placeholder="Enter your admin username" required>
                     </div>
                     
                     <div class="form-group">
@@ -79,7 +79,6 @@ if(isset($_SESSION['student_id'])) {
                             <input type="checkbox" name="remember">
                             <span>Remember me</span>
                         </label>
-                        <a href="forgot-password.php" class="forgot-link">Forgot Password?</a>
                     </div>
                     
                     <button type="submit" class="btn-login">
@@ -88,8 +87,8 @@ if(isset($_SESSION['student_id'])) {
                 </form>
                 
                 <div class="register-link">
-                    Staff member? <a href="staff-login.php">Login here</a> | 
-                    Admin? <a href="admin-login.php">Login here</a>
+                    Student? <a href="index.php">Login here</a> | 
+                    Staff? <a href="staff-login.php">Login here</a>
                 </div>
             </div>
         </div>

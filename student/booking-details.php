@@ -187,12 +187,19 @@ $can_cancel = in_array($booking['status'], ['pending', 'confirmed']) && strtotim
         </div>
     </div>
 
+    <?php include '../assets/includes/modals.php'; ?>
+    <link rel="stylesheet" href="../assets/css/modals.css">
+    <script src="../assets/js/modals.js"></script>
     <script src="js/dashboard.js"></script>
     <script>
         function confirmCancel() {
-            if (confirm('Are you sure you want to cancel this booking?')) {
-                window.location.href = 'cancel-booking.php?id=<?php echo $booking_id; ?>';
-            }
+            showConfirmModal(
+                'Cancel Booking',
+                'Are you sure you want to cancel this booking? This action cannot be undone.',
+                function() {
+                    window.location.href = 'cancel-booking.php?id=<?php echo $booking_id; ?>';
+                }
+            );
         }
     </script>
 </body>

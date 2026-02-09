@@ -19,20 +19,32 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
         <a href="schedule.php" class="nav-item <?php echo $current_page == 'schedule.php' ? 'active' : ''; ?>">
             <i class="fas fa-clock"></i>
-            <span>My Schedule</span>
+            <span>Schedule</span>
+        </a>
+        <a href="all-students.php" class="nav-item <?php echo $current_page == 'all-students.php' ? 'active' : ''; ?>">
+            <i class="fas fa-user-graduate"></i>
+            <span>All Students</span>
         </a>
         <a href="students.php" class="nav-item <?php echo $current_page == 'students.php' ? 'active' : ''; ?>">
             <i class="fas fa-users"></i>
-            <span>Students</span>
+            <span>My Students</span>
+        </a>
+        <a href="notifications.php" class="nav-item <?php echo $current_page == 'notifications.php' ? 'active' : ''; ?>">
+            <i class="fas fa-bell"></i>
+            <span>Notifications</span>
         </a>
         <a href="profile.php" class="nav-item <?php echo $current_page == 'profile.php' ? 'active' : ''; ?>">
             <i class="fas fa-user"></i>
             <span>Profile</span>
         </a>
+        <a href="settings.php" class="nav-item <?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
+            <i class="fas fa-cog"></i>
+            <span>Settings</span>
+        </a>
     </nav>
     
     <div class="sidebar-footer">
-        <a href="../auth/logout.php" class="nav-item logout">
+        <a href="#" onclick="confirmLogout(); return false;" class="nav-item logout">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
         </a>

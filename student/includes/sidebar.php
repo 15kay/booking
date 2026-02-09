@@ -36,7 +36,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </nav>
     
     <div class="sidebar-footer">
-        <a href="../auth/logout.php" class="nav-item logout">
+        <a href="#" onclick="confirmLogout(); return false;" class="nav-item logout">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
         </a>
