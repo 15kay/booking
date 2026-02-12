@@ -27,7 +27,12 @@ $stmt = $conn->prepare("SELECT COUNT(*) as completed FROM bookings WHERE student
 $stmt->execute([$_SESSION['student_id']]);
 $completed_bookings = $stmt->fetch()['completed'];
 
-// Get booking statistics for success score
+// Get student info including reading_score
+$stmt = $conn->prepare("SELECT * FROM students WHERE student_id = ?");
+$stmt->execute([$_SESSION['student_id']]);
+$student_info = $stmt->fetch();
+
+// Get booking statistics for readiness score
 $stmt = $conn->prepare("
     SELECT 
         COUNT(*) as total_bookings,
@@ -40,9 +45,11 @@ $stmt = $conn->prepare("
 $stmt->execute([$_SESSION['student_id']]);
 $booking_stats = $stmt->fetch();
 
-// Calculate success score
+// Calculate readiness score - prioritize reading_score from database
 $success_score = 0;
-if($booking_stats['total_bookings'] > 0) {
+if(isset($student_info['reading_score']) && $student_info['reading_score'] !== null && $student_info['reading_score'] > 0) {
+    $success_score = round($student_info['reading_score']);
+} elseif($booking_stats['total_bookings'] > 0) {
     $completion_rate = ($booking_stats['completed_sessions'] / $booking_stats['total_bookings']) * 100;
     $engagement_level = min(100, ($booking_stats['total_bookings'] / 10) * 100);
     $no_show_penalty = ($booking_stats['no_show_sessions'] * 10);
@@ -55,8 +62,8 @@ if($booking_stats['total_bookings'] > 0) {
         $no_show_penalty - 
         $cancelled_penalty
     ));
+    $success_score = round($success_score);
 }
-$success_score = round($success_score);
 
 // Determine score color and label
 if($success_score >= 80) {
@@ -125,7 +132,7 @@ $upcoming_bookings = $stmt->fetchAll();
 
                 <!-- Stats Grid -->
                 <div class="stats-grid">
-                    <!-- Success Score Card -->
+                    <!-- Readiness Score Card -->
                     <div class="stat-card readiness-card" style="background: linear-gradient(135deg, <?php echo $score_bg; ?> 0%, <?php echo $score_bg; ?> 100%); border: 2px solid <?php echo $score_color; ?>;">
                         <div class="readiness-card-content">
                             <div class="score-circle-small">

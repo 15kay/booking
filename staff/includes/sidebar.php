@@ -58,12 +58,12 @@ $role = $_SESSION['role'] ?? 'staff';
             </a>
             
         <?php else: ?>
-            <!-- Regular Staff Menu -->
+            <!-- Regular Staff Menu (Counselors, Advisors) -->
             <a href="appointments.php" class="nav-item <?php echo $current_page == 'appointments.php' ? 'active' : ''; ?>">
                 <i class="fas fa-calendar-check"></i>
                 <span>Appointments</span>
             </a>
-            <a href="schedule.php" class="nav-item <?php echo $current_page == 'schedule.php' ? 'active' : ''; ?>">
+            <a href="staff-schedule.php" class="nav-item <?php echo $current_page == 'staff-schedule.php' ? 'active' : ''; ?>">
                 <i class="fas fa-clock"></i>
                 <span>Schedule</span>
             </a>

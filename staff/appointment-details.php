@@ -20,7 +20,7 @@ $conn = $db->connect();
 // Get appointment details
 $stmt = $conn->prepare("
     SELECT b.*, s.service_name, s.service_code, s.description as service_description,
-           st.first_name, st.last_name, st.student_id, st.email, st.phone, st.year_of_study, st.student_type,
+           st.first_name, st.last_name, st.student_id, st.email, st.phone, st.year_of_study, st.student_type, st.reading_score,
            sc.category_name,
            f.faculty_name
     FROM bookings b
@@ -47,7 +47,7 @@ $stmt = $conn->prepare("
 $stmt->execute([$booking_id]);
 $history = $stmt->fetchAll();
 
-// Get student's booking statistics for success score
+// Get student's booking statistics for readiness score
 $stmt = $conn->prepare("
     SELECT 
         COUNT(*) as total_bookings,
@@ -60,9 +60,11 @@ $stmt = $conn->prepare("
 $stmt->execute([$appointment['student_id']]);
 $student_stats = $stmt->fetch();
 
-// Calculate success score
+// Calculate readiness score - prioritize reading_score from database
 $success_score = 0;
-if($student_stats['total_bookings'] > 0) {
+if(isset($appointment['reading_score']) && $appointment['reading_score'] !== null && $appointment['reading_score'] > 0) {
+    $success_score = round($appointment['reading_score']);
+} elseif($student_stats['total_bookings'] > 0) {
     $completion_rate = ($student_stats['completed'] / $student_stats['total_bookings']) * 100;
     $engagement_level = min(100, ($student_stats['total_bookings'] / 10) * 100);
     $no_show_penalty = ($student_stats['no_shows'] * 10);
@@ -75,8 +77,8 @@ if($student_stats['total_bookings'] > 0) {
         $no_show_penalty - 
         $cancelled_penalty
     ));
+    $success_score = round($success_score);
 }
-$success_score = round($success_score);
 
 // Determine score color and label
 if($success_score >= 80) {
@@ -204,7 +206,7 @@ if($success_score >= 80) {
                     <div class="profile-section">
                         <h3><i class="fas fa-user"></i> Student Information</h3>
                         
-                        <!-- Success Score Display -->
+                        <!-- Readiness Score Display -->
                         <div style="background: <?php echo $score_bg; ?>; border: 2px solid <?php echo $score_color; ?>; border-radius: 12px; padding: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px;">
                             <div style="position: relative; width: 80px; height: 80px; flex-shrink: 0;">
                                 <svg style="transform: rotate(-90deg);" width="80" height="80">
@@ -219,7 +221,7 @@ if($success_score >= 80) {
                                 </div>
                             </div>
                             <div style="flex: 1;">
-                                <h4 style="color: <?php echo $score_color; ?>; font-size: 20px; margin-bottom: 8px;">Student Success Score</h4>
+                                <h4 style="color: <?php echo $score_color; ?>; font-size: 20px; margin-bottom: 8px;">Student Readiness Score</h4>
                                 <p style="color: <?php echo $score_color; ?>; font-weight: 600; font-size: 16px; margin-bottom: 8px;">
                                     Performance: <?php echo $score_label; ?>
                                 </p>

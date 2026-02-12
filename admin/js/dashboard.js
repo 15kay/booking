@@ -1,20 +1,34 @@
 // Hamburger Menu Toggle
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.querySelector('.sidebar');
+const mainContent = document.querySelector('.main-content');
 const headerLogo = document.getElementById('headerLogo');
 
 if (menuToggle && sidebar) {
     menuToggle.addEventListener('click', function(e) {
         e.stopPropagation();
-        sidebar.classList.toggle('active');
-        document.body.classList.toggle('sidebar-open');
         
-        if (headerLogo) {
-            headerLogo.style.display = sidebar.classList.contains('active') ? 'none' : 'flex';
+        // Check if we're on mobile or desktop
+        const isMobile = window.innerWidth <= 768;
+        
+        if (isMobile) {
+            // Mobile behavior: overlay sidebar
+            sidebar.classList.toggle('active');
+            document.body.classList.toggle('sidebar-open');
+            
+            if (headerLogo) {
+                headerLogo.style.display = sidebar.classList.contains('active') ? 'none' : 'flex';
+            }
+        } else {
+            // Desktop behavior: collapse sidebar
+            sidebar.classList.toggle('collapsed');
+            if (mainContent) {
+                mainContent.classList.toggle('sidebar-collapsed');
+            }
         }
     });
     
-    // Close sidebar when clicking on overlay (mobile)
+    // Close sidebar when clicking on overlay (mobile only)
     document.addEventListener('click', function(e) {
         if (window.innerWidth <= 768) {
             if (sidebar.classList.contains('active') && 
@@ -32,6 +46,26 @@ if (menuToggle && sidebar) {
     // Prevent clicks inside sidebar from closing it
     sidebar.addEventListener('click', function(e) {
         e.stopPropagation();
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        const isMobile = window.innerWidth <= 768;
+        
+        if (!isMobile) {
+            // Remove mobile classes when switching to desktop
+            sidebar.classList.remove('active');
+            document.body.classList.remove('sidebar-open');
+            if (headerLogo) {
+                headerLogo.style.display = 'flex';
+            }
+        } else {
+            // Remove desktop classes when switching to mobile
+            sidebar.classList.remove('collapsed');
+            if (mainContent) {
+                mainContent.classList.remove('sidebar-collapsed');
+            }
+        }
     });
 }
 

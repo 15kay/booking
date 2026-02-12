@@ -10,6 +10,10 @@ require_once '../config/database.php';
 $db = new Database();
 $conn = $db->connect();
 
+// Get staff role
+$role = $_SESSION['role'] ?? 'staff';
+$is_tutor_or_pal = in_array($role, ['tutor', 'pal']);
+
 // Get filter parameters
 $faculty_filter = isset($_GET['faculty']) ? $_GET['faculty'] : '';
 $year_filter = isset($_GET['year']) ? $_GET['year'] : '';
@@ -621,19 +625,23 @@ $students_without_bookings = $total_students - $students_with_bookings;
                                 <th>Faculty</th>
                                 <th>Year & Type</th>
                                 <th>Status</th>
-                                <th>Success Score</th>
+                                <th>Readiness Score</th>
+                                <?php if(!$is_tutor_or_pal): ?>
                                 <th>Engagement</th>
                                 <th>Sessions</th>
                                 <th>Last Activity</th>
+                                <?php endif; ?>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if(count($students) > 0): ?>
                                 <?php foreach($students as $student): 
-                                    // Calculate success score (0-100)
+                                    // Use reading_score from database if available, otherwise calculate from bookings
                                     $success_score = 0;
-                                    if($student['total_bookings'] > 0) {
+                                    if(isset($student['reading_score']) && $student['reading_score'] !== null && $student['reading_score'] > 0) {
+                                        $success_score = round($student['reading_score']);
+                                    } elseif($student['total_bookings'] > 0) {
                                         $completion_rate = ($student['completed_sessions'] / $student['total_bookings']) * 100;
                                         $engagement_score = min(100, ($student['total_bookings'] / 10) * 100); // Max at 10 bookings
                                         $no_show_penalty = ($student['no_show_sessions'] * 10); // -10 per no-show
@@ -646,8 +654,8 @@ $students_without_bookings = $total_students - $students_with_bookings;
                                             $no_show_penalty - 
                                             $cancelled_penalty
                                         ));
+                                        $success_score = round($success_score);
                                     }
-                                    $success_score = round($success_score);
                                     
                                     // Determine score color
                                     if($success_score >= 80) {
@@ -717,6 +725,8 @@ $students_without_bookings = $total_students - $students_with_bookings;
                                             </span>
                                         </div>
                                     </td>
+                                    </td>
+                                    <?php if(!$is_tutor_or_pal): ?>
                                     <td>
                                         <?php if($student['total_bookings'] > 0): ?>
                                             <div class="progress-indicator">
@@ -741,6 +751,7 @@ $students_without_bookings = $total_students - $students_with_bookings;
                                             <span style="color: #9ca3af;">Never</span>
                                         <?php endif; ?>
                                     </td>
+                                    <?php endif; ?>
                                     <td>
                                         <div class="action-buttons">
                                             <a href="student-profile.php?id=<?php echo $student['student_id']; ?>" class="btn-table btn-view">
@@ -755,7 +766,7 @@ $students_without_bookings = $total_students - $students_with_bookings;
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="9" style="text-align: center; padding: 40px;">
+                                    <td colspan="<?php echo $is_tutor_or_pal ? '6' : '9'; ?>" style="text-align: center; padding: 40px;">
                                         <i class="fas fa-users" style="font-size: 48px; color: #d1d5db; margin-bottom: 10px;"></i>
                                         <p style="color: #9ca3af;">No students found matching your criteria</p>
                                     </td>

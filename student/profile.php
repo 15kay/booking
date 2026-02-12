@@ -17,7 +17,7 @@ $stmt = $conn->prepare("SELECT s.*, f.faculty_name FROM students s LEFT JOIN fac
 $stmt->execute([$student_id]);
 $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Get booking statistics for success score
+// Get booking statistics for readiness score
 $stmt = $conn->prepare("
     SELECT 
         COUNT(*) as total_bookings,
@@ -30,9 +30,11 @@ $stmt = $conn->prepare("
 $stmt->execute([$student_id]);
 $booking_stats = $stmt->fetch();
 
-// Calculate success score
+// Calculate readiness score - prioritize reading_score from database
 $success_score = 0;
-if($booking_stats['total_bookings'] > 0) {
+if(isset($student['reading_score']) && $student['reading_score'] !== null && $student['reading_score'] > 0) {
+    $success_score = round($student['reading_score']);
+} elseif($booking_stats['total_bookings'] > 0) {
     $completion_rate = ($booking_stats['completed_sessions'] / $booking_stats['total_bookings']) * 100;
     $engagement_level = min(100, ($booking_stats['total_bookings'] / 10) * 100);
     $no_show_penalty = ($booking_stats['no_show_sessions'] * 10);
@@ -45,8 +47,8 @@ if($booking_stats['total_bookings'] > 0) {
         $no_show_penalty - 
         $cancelled_penalty
     ));
+    $success_score = round($success_score);
 }
-$success_score = round($success_score);
 
 // Determine score color and label
 if($success_score >= 80) {

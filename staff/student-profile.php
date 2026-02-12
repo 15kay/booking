@@ -72,14 +72,18 @@ $stmt = $conn->prepare("
 $stmt->execute([$student_id]);
 $service_usage = $stmt->fetchAll();
 
-// Calculate engagement score and success score
+// Calculate engagement score and readiness score
 $engagement_score = 0;
 $success_score = 0;
-if($booking_stats['total_bookings'] > 0) {
+
+// Prioritize reading_score from database
+if(isset($student['reading_score']) && $student['reading_score'] !== null && $student['reading_score'] > 0) {
+    $success_score = round($student['reading_score']);
+} elseif($booking_stats['total_bookings'] > 0) {
     $completion_rate = ($booking_stats['completed'] / $booking_stats['total_bookings']) * 100;
     $engagement_score = min(100, $completion_rate);
     
-    // Calculate success score
+    // Calculate readiness score from bookings
     $engagement_level = min(100, ($booking_stats['total_bookings'] / 10) * 100);
     $no_show_penalty = ($booking_stats['no_shows'] * 10);
     $cancelled_penalty = ($booking_stats['cancelled'] * 5);
@@ -91,8 +95,8 @@ if($booking_stats['total_bookings'] > 0) {
         $no_show_penalty - 
         $cancelled_penalty
     ));
+    $success_score = round($success_score);
 }
-$success_score = round($success_score);
 
 // Determine score color and label
 if($success_score >= 80) {
@@ -506,7 +510,7 @@ if($success_score >= 80) {
                         </div>
                         <div class="stat-info">
                             <h3 style="color: <?php echo $score_color; ?>; font-size: 42px;"><?php echo $success_score; ?></h3>
-                            <p style="color: <?php echo $score_color; ?>; font-weight: 700;">Success Score - <?php echo $score_label; ?></p>
+                            <p style="color: <?php echo $score_color; ?>; font-weight: 700;">Readiness Score - <?php echo $score_label; ?></p>
                         </div>
                     </div>
                     

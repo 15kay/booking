@@ -1,7 +1,21 @@
 <?php
 session_start();
-if(!isset($_SESSION['staff_id']) || !in_array($_SESSION['role'], ['tutor', 'pal'])) {
+
+// Check if user is logged in
+if(!isset($_SESSION['staff_id'])) {
     header('Location: ../staff-login.php');
+    exit();
+}
+
+$role = $_SESSION['role'] ?? 'staff';
+$staff_id = $_SESSION['staff_id'];
+
+// Determine if this is a tutor/PAL
+$is_tutor = in_array($role, ['tutor', 'pal']);
+
+// Only tutors and PALs can access this tutoring schedule page
+if(!$is_tutor) {
+    header('Location: index.php');
     exit();
 }
 
@@ -10,7 +24,8 @@ require_once '../config/database.php';
 $db = new Database();
 $conn = $db->connect();
 
-$tutor_id = $_SESSION['staff_id'];
+// FOR TUTORS/PALS: Continue with tutoring session schedule below
+$tutor_id = $staff_id;
 
 // Get selected assignment (if any)
 $selected_assignment_id = isset($_GET['assignment_id']) ? intval($_GET['assignment_id']) : 0;
