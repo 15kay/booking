@@ -1,6 +1,6 @@
 <?php
 session_start();
-if(!isset($_SESSION['staff_id'])) {
+if(!isset($_SESSION['staff_id']) || $_SESSION['role'] != 'coordinator') {
     header('Location: ../staff-login.php');
     exit();
 }
@@ -13,10 +13,10 @@ $conn = $db->connect();
 $success = '';
 $error = '';
 
-// Get staff details
+// Get coordinator details
 $stmt = $conn->prepare("SELECT * FROM staff WHERE staff_id = ?");
 $stmt->execute([$_SESSION['staff_id']]);
-$staff = $stmt->fetch();
+$coordinator = $stmt->fetch();
 
 // Handle profile update
 if(isset($_POST['update_profile'])) {
@@ -32,15 +32,11 @@ if(isset($_POST['update_profile'])) {
         ");
         $update_stmt->execute([$first_name, $last_name, $phone, $_SESSION['staff_id']]);
         
-        // Update session
-        $_SESSION['first_name'] = $first_name;
-        $_SESSION['last_name'] = $last_name;
-        
         $success = 'Profile updated successfully!';
         
-        // Refresh staff data
+        // Refresh coordinator data
         $stmt->execute([$_SESSION['staff_id']]);
-        $staff = $stmt->fetch();
+        $coordinator = $stmt->fetch();
         
     } catch(PDOException $e) {
         $error = 'Error updating profile: ' . $e->getMessage();
@@ -57,7 +53,7 @@ if(isset($_POST['change_password'])) {
         $error = 'New passwords do not match!';
     } elseif(strlen($new_password) < 6) {
         $error = 'Password must be at least 6 characters long!';
-    } elseif(!password_verify($current_password, $staff['password_hash'])) {
+    } elseif(!password_verify($current_password, $coordinator['password_hash'])) {
         $error = 'Current password is incorrect!';
     } else {
         try {
@@ -254,16 +250,13 @@ if(isset($_POST['change_password'])) {
                     <!-- Profile Header -->
                     <div class="profile-header">
                         <div class="profile-avatar">
-                            <?php echo strtoupper(substr($staff['first_name'], 0, 1) . substr($staff['last_name'], 0, 1)); ?>
+                            <?php echo strtoupper(substr($coordinator['first_name'], 0, 1) . substr($coordinator['last_name'], 0, 1)); ?>
                         </div>
                         <div class="profile-info">
-                            <h3><?php echo htmlspecialchars($staff['first_name'] . ' ' . $staff['last_name']); ?></h3>
-                            <p><?php echo htmlspecialchars($staff['email']); ?></p>
+                            <h3><?php echo htmlspecialchars($coordinator['first_name'] . ' ' . $coordinator['last_name']); ?></h3>
+                            <p><?php echo htmlspecialchars($coordinator['email']); ?></p>
                             <span class="badge">
-                                <i class="fas fa-user-tie"></i> <?php echo ucfirst($staff['role']); ?>
-                                <?php if(isset($staff['assigned_campus']) && $staff['assigned_campus']): ?>
-                                    - <?php echo htmlspecialchars($staff['assigned_campus']); ?> Campus
-                                <?php endif; ?>
+                                <i class="fas fa-user-tie"></i> Coordinator - <?php echo htmlspecialchars($coordinator['assigned_campus']); ?> Campus
                             </span>
                         </div>
                     </div>
@@ -276,41 +269,32 @@ if(isset($_POST['change_password'])) {
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label><i class="fas fa-id-card"></i> Staff Number</label>
-                                    <input type="text" value="<?php echo htmlspecialchars($staff['staff_number']); ?>" disabled>
+                                    <input type="text" value="<?php echo htmlspecialchars($coordinator['staff_number']); ?>" disabled>
                                 </div>
                                 
-                                <?php if(isset($staff['student_number']) && $staff['student_number']): ?>
-                                    <div class="form-group">
-                                        <label><i class="fas fa-id-badge"></i> Student Number</label>
-                                        <input type="text" value="<?php echo htmlspecialchars($staff['student_number']); ?>" disabled>
-                                    </div>
-                                <?php endif; ?>
-                                
-                                <?php if(isset($staff['assigned_campus']) && $staff['assigned_campus']): ?>
-                                    <div class="form-group">
-                                        <label><i class="fas fa-building"></i> Campus</label>
-                                        <input type="text" value="<?php echo htmlspecialchars($staff['assigned_campus']); ?>" disabled>
-                                    </div>
-                                <?php endif; ?>
+                                <div class="form-group">
+                                    <label><i class="fas fa-building"></i> Campus</label>
+                                    <input type="text" value="<?php echo htmlspecialchars($coordinator['assigned_campus']); ?>" disabled>
+                                </div>
                                 
                                 <div class="form-group">
                                     <label><i class="fas fa-user"></i> First Name</label>
-                                    <input type="text" name="first_name" value="<?php echo htmlspecialchars($staff['first_name']); ?>" required>
+                                    <input type="text" name="first_name" value="<?php echo htmlspecialchars($coordinator['first_name']); ?>" required>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label><i class="fas fa-user"></i> Last Name</label>
-                                    <input type="text" name="last_name" value="<?php echo htmlspecialchars($staff['last_name']); ?>" required>
+                                    <input type="text" name="last_name" value="<?php echo htmlspecialchars($coordinator['last_name']); ?>" required>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label><i class="fas fa-envelope"></i> Email</label>
-                                    <input type="email" value="<?php echo htmlspecialchars($staff['email']); ?>" disabled>
+                                    <input type="email" value="<?php echo htmlspecialchars($coordinator['email']); ?>" disabled>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label><i class="fas fa-phone"></i> Phone</label>
-                                    <input type="tel" name="phone" value="<?php echo htmlspecialchars($staff['phone']); ?>" required>
+                                    <input type="tel" name="phone" value="<?php echo htmlspecialchars($coordinator['phone']); ?>" required>
                                 </div>
                             </div>
                             
@@ -359,22 +343,22 @@ if(isset($_POST['change_password'])) {
                         <div class="form-grid">
                             <div class="form-group">
                                 <label><i class="fas fa-user-tag"></i> Role</label>
-                                <input type="text" value="<?php echo ucfirst($staff['role']); ?>" disabled>
+                                <input type="text" value="Coordinator" disabled>
                             </div>
                             
                             <div class="form-group">
                                 <label><i class="fas fa-toggle-on"></i> Status</label>
-                                <input type="text" value="<?php echo ucfirst($staff['status']); ?>" disabled>
+                                <input type="text" value="<?php echo ucfirst($coordinator['status']); ?>" disabled>
                             </div>
                             
                             <div class="form-group">
                                 <label><i class="fas fa-calendar-plus"></i> Account Created</label>
-                                <input type="text" value="<?php echo date('F j, Y', strtotime($staff['created_at'])); ?>" disabled>
+                                <input type="text" value="<?php echo date('F j, Y', strtotime($coordinator['created_at'])); ?>" disabled>
                             </div>
                             
                             <div class="form-group">
                                 <label><i class="fas fa-clock"></i> Last Updated</label>
-                                <input type="text" value="<?php echo date('F j, Y g:i A', strtotime($staff['updated_at'])); ?>" disabled>
+                                <input type="text" value="<?php echo date('F j, Y g:i A', strtotime($coordinator['updated_at'])); ?>" disabled>
                             </div>
                         </div>
                     </div>

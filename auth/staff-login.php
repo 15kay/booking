@@ -46,11 +46,13 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['email'] = $staff['email'];
         $_SESSION['department_id'] = $staff['department_id'];
         $_SESSION['role'] = $staff['role'];
+        $_SESSION['assigned_campus'] = $staff['assigned_campus'];
         
         // Update last login
         $stmt = $conn->prepare("UPDATE staff SET last_login = NOW() WHERE staff_id = ?");
         $stmt->execute([$staff['staff_id']]);
         
+        // Route based on role - all staff go to staff portal
         header('Location: ../staff/index.php');
         exit();
         
