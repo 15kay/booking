@@ -121,14 +121,24 @@ $graduated_students = $stmt->fetch()['total'];
 
                 <!-- Page Header -->
                 <div class="section-header">
-                    <h2 class="section-title"><i class="fas fa-user-graduate"></i> All Students</h2>
-                    <button class="btn btn-primary" onclick="showMessageModal('info', 'Coming Soon', 'Add student functionality coming soon')">
-                        <i class="fas fa-plus"></i> Add Student
-                    </button>
+                    <h2 class="section-title"><i class="fas fa-user-graduate"></i> All Students (<?php echo count($students); ?>)</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="table" onclick="toggleView('table')">
+                                <i class="fas fa-table"></i> Table
+                            </button>
+                            <button class="view-btn" data-view="cards" onclick="toggleView('cards')">
+                                <i class="fas fa-th-large"></i> Cards
+                            </button>
+                        </div>
+                        <button class="btn btn-primary" onclick="showMessageModal('info', 'Coming Soon', 'Add student functionality coming soon')">
+                            <i class="fas fa-plus"></i> Add Student
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Students Table -->
-                <div class="section">
+                <!-- Students Table View -->
+                <div class="section" id="tableView">
                     <?php if(count($students) > 0): ?>
                         <div class="students-table-container">
                             <table class="students-table">
@@ -207,6 +217,64 @@ $graduated_students = $stmt->fetch()['total'];
                         </div>
                     <?php endif; ?>
                 </div>
+
+                <!-- Students Card View -->
+                <div class="section" id="cardsView" style="display: none;">
+                    <?php if(count($students) > 0): ?>
+                        <div class="students-grid">
+                            <?php foreach($students as $student): ?>
+                            <div class="student-card">
+                                <div class="student-card-header">
+                                    <div class="student-avatar-large">
+                                        <?php echo strtoupper(substr($student['first_name'], 0, 1) . substr($student['last_name'], 0, 1)); ?>
+                                    </div>
+                                    <span class="badge badge-<?php echo $student['status']; ?>">
+                                        <?php echo ucfirst($student['status']); ?>
+                                    </span>
+                                </div>
+                                <div class="student-card-body">
+                                    <h3><?php echo htmlspecialchars($student['first_name'] . ' ' . $student['last_name']); ?></h3>
+                                    <p class="student-id"><?php echo htmlspecialchars($student['student_id']); ?></p>
+                                    
+                                    <div class="student-info-grid">
+                                        <div class="info-row">
+                                            <i class="fas fa-envelope"></i>
+                                            <span><?php echo htmlspecialchars($student['email']); ?></span>
+                                        </div>
+                                        <div class="info-row">
+                                            <i class="fas fa-phone"></i>
+                                            <span><?php echo htmlspecialchars($student['phone'] ?? 'N/A'); ?></span>
+                                        </div>
+                                        <div class="info-row">
+                                            <i class="fas fa-university"></i>
+                                            <span><?php echo htmlspecialchars($student['faculty_code'] ?? 'Not assigned'); ?></span>
+                                        </div>
+                                        <div class="info-row">
+                                            <i class="fas fa-graduation-cap"></i>
+                                            <span>Year <?php echo $student['year_of_study']; ?> - <?php echo ucfirst($student['student_type']); ?></span>
+                                        </div>
+                                        <div class="info-row">
+                                            <i class="fas fa-clock"></i>
+                                            <span>Last login: <?php echo $student['last_login'] ? date('d M Y', strtotime($student['last_login'])) : 'Never'; ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="student-card-footer">
+                                    <a href="student-details.php?id=<?php echo urlencode($student['student_id']); ?>" class="btn btn-primary btn-block">
+                                        <i class="fas fa-eye"></i> View Profile
+                                    </a>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <i class="fas fa-user-graduate"></i>
+                            <h3>No Students Found</h3>
+                            <p>No students have been registered yet</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
@@ -225,6 +293,34 @@ $graduated_students = $stmt->fetch()['total'];
                 }
             );
         }
+        
+        // View toggle functionality
+        function toggleView(view) {
+            const tableView = document.getElementById('tableView');
+            const cardsView = document.getElementById('cardsView');
+            const tableBtnBtn = document.querySelector('[data-view="table"]');
+            const cardBtn = document.querySelector('[data-view="cards"]');
+            
+            if(view === 'table') {
+                tableView.style.display = 'block';
+                cardsView.style.display = 'none';
+                tableBtn.classList.add('active');
+                cardBtn.classList.remove('active');
+                localStorage.setItem('adminStudentsView', 'table');
+            } else {
+                tableView.style.display = 'none';
+                cardsView.style.display = 'block';
+                tableBtn.classList.remove('active');
+                cardBtn.classList.add('active');
+                localStorage.setItem('adminStudentsView', 'cards');
+            }
+        }
+        
+        // Restore saved view preference
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedView = localStorage.getItem('adminStudentsView') || 'table';
+            toggleView(savedView);
+        });
     </script>
 </body>
 </html>

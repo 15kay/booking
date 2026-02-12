@@ -391,6 +391,53 @@ body {
     font-size: 14px;
 }
 
+/* Readiness Card Styles */
+.readiness-card {
+    grid-column: span 2;
+    padding: 30px;
+}
+
+.readiness-card-content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.score-circle-small {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+}
+
+.score-info {
+    flex: 1;
+}
+
+.score-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 12px;
+}
+
+.score-metrics span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+}
+
+.info-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* SECTION */
 .section {
     background: var(--white);
@@ -782,6 +829,50 @@ body {
         gap: 12px;
     }
     
+    /* Readiness card - full width on tablet */
+    .readiness-card {
+        grid-column: 1 / -1;
+    }
+    
+    .readiness-card-content {
+        gap: 20px;
+    }
+    
+    .score-circle-small {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .score-circle-small svg {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .score-number {
+        font-size: 24px !important;
+    }
+    
+    .score-label {
+        font-size: 9px !important;
+    }
+    
+    .score-info h3 {
+        font-size: 20px !important;
+    }
+    
+    .score-info p {
+        font-size: 16px !important;
+    }
+    
+    .score-metrics {
+        gap: 10px;
+    }
+    
+    .score-metrics span {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+    
     .stat-card {
         padding: 15px;
         gap: 12px;
@@ -1051,6 +1142,60 @@ body {
         gap: 10px;
     }
     
+    /* Readiness card - mobile */
+    .readiness-card {
+        grid-column: 1;
+        padding: 20px;
+    }
+    
+    .readiness-card-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .score-circle-small {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .score-circle-small svg {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .score-number {
+        font-size: 28px !important;
+    }
+    
+    .score-label {
+        font-size: 10px !important;
+    }
+    
+    .score-info h3 {
+        font-size: 18px !important;
+        justify-content: center;
+    }
+    
+    .score-info p {
+        font-size: 14px !important;
+    }
+    
+    .score-metrics {
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .score-metrics span {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+    
+    .info-text {
+        font-size: 11px !important;
+        justify-content: center;
+    }
+    
     /* Hero section */
     .hero-section {
         padding: 20px 15px;
@@ -1157,6 +1302,95 @@ body {
     .booking-item-footer .btn-action {
         width: 100%;
         justify-content: center;
+    }
+    
+    /* Profile - Mobile */
+    .readiness-banner {
+        padding: 20px;
+    }
+    
+    .readiness-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+    
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto;
+    }
+    
+    .score-circle svg {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .score-details h2 {
+        font-size: 20px !important;
+        justify-content: center;
+    }
+    
+    .score-details p {
+        font-size: 16px !important;
+    }
+    
+    .score-stats {
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .score-stats span {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+    
+    .info-text {
+        font-size: 12px !important;
+        text-align: center;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 25px 20px;
+        gap: 15px;
+    }
+    
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 50px;
+        margin: 0 auto;
+    }
+    
+    .profile-info h2 {
+        font-size: 20px;
+    }
+    
+    .profile-info p {
+        font-size: 13px;
+    }
+    
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .profile-section {
+        padding: 20px;
+    }
+    
+    .profile-section h3 {
+        font-size: 16px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-grid {
+        gap: 15px;
     }
     
     /* Modals */
@@ -1294,6 +1528,57 @@ body {
     
     .day-number {
         font-size: 15px;
+    }
+    
+    /* Profile - Tablet */
+    .readiness-banner {
+        padding: 25px;
+    }
+    
+    .readiness-content {
+        gap: 30px;
+    }
+    
+    .score-circle {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .score-circle svg {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .score-details h2 {
+        font-size: 24px !important;
+    }
+    
+    .score-details p {
+        font-size: 18px !important;
+    }
+    
+    .score-stats span {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+    
+    .profile-header {
+        padding: 30px;
+        gap: 20px;
+    }
+    
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 60px;
+    }
+    
+    .profile-info h2 {
+        font-size: 24px;
+    }
+    
+    .profile-grid {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -2384,6 +2669,55 @@ body {
 
 
 /* Profile Page */
+/* Readiness Banner */
+.readiness-banner {
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border: 2px solid;
+}
+
+.readiness-content {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.score-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.score-details {
+    flex: 1;
+}
+
+.score-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.score-stats span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.score-stats span i {
+    font-size: 16px;
+}
+
 .profile-container {
     max-width: 1200px;
 }

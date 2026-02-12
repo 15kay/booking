@@ -9,34 +9,34 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     
     <nav class="sidebar-nav">
-        <a href="index.php" class="nav-item <?php echo $current_page == 'index.php' ? 'active' : ''; ?>">
+        <a href="index.php" class="nav-item <?php echo $current_page == 'index.php' ? 'active' : ''; ?>" data-tooltip="Dashboard">
             <i class="fas fa-home"></i>
             <span>Dashboard</span>
         </a>
-        <a href="book-service.php" class="nav-item <?php echo $current_page == 'book-service.php' ? 'active' : ''; ?>">
+        <a href="book-service.php" class="nav-item <?php echo $current_page == 'book-service.php' ? 'active' : ''; ?>" data-tooltip="Book Service">
             <i class="fas fa-calendar-plus"></i>
             <span>Book Service</span>
         </a>
-        <a href="my-bookings.php" class="nav-item <?php echo $current_page == 'my-bookings.php' ? 'active' : ''; ?>">
+        <a href="my-bookings.php" class="nav-item <?php echo $current_page == 'my-bookings.php' ? 'active' : ''; ?>" data-tooltip="My Bookings">
             <i class="fas fa-calendar-check"></i>
             <span>My Bookings</span>
         </a>
-        <a href="notifications.php" class="nav-item <?php echo $current_page == 'notifications.php' ? 'active' : ''; ?>">
+        <a href="notifications.php" class="nav-item <?php echo $current_page == 'notifications.php' ? 'active' : ''; ?>" data-tooltip="Notifications">
             <i class="fas fa-bell"></i>
             <span>Notifications</span>
         </a>
-        <a href="profile.php" class="nav-item <?php echo $current_page == 'profile.php' ? 'active' : ''; ?>">
+        <a href="profile.php" class="nav-item <?php echo $current_page == 'profile.php' ? 'active' : ''; ?>" data-tooltip="Profile">
             <i class="fas fa-user"></i>
             <span>Profile</span>
         </a>
-        <a href="settings.php" class="nav-item <?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
+        <a href="settings.php" class="nav-item <?php echo $current_page == 'settings.php' ? 'active' : ''; ?>" data-tooltip="Settings">
             <i class="fas fa-cog"></i>
             <span>Settings</span>
         </a>
     </nav>
     
     <div class="sidebar-footer">
-        <a href="#" onclick="confirmLogout(); return false;" class="nav-item logout">
+        <a href="#" onclick="confirmLogout(); return false;" class="nav-item logout" data-tooltip="Logout">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
         </a>
