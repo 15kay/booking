@@ -7,7 +7,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
     
     if(empty($username) || empty($password)) {
-        header('Location: ../admin-login.php?error=Please fill in all fields');
+        header('Location: ../index.php?error=Please fill in all fields');
         exit();
     }
     
@@ -16,7 +16,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $conn = $db->connect();
         
         if(!$conn) {
-            header('Location: ../admin-login.php?error=Database connection failed');
+            header('Location: ../index.php?error=Database connection failed');
             exit();
         }
         
@@ -31,17 +31,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
             $admin = $stmt->fetch();
             
             if(!$admin) {
-                header('Location: ../admin-login.php?error=Invalid username or password');
+                header('Location: ../index.php?error=Invalid username or password');
                 exit();
             }
             
             if($admin['status'] != 'active') {
-                header('Location: ../admin-login.php?error=Account is not active');
+                header('Location: ../index.php?error=Account is not active');
                 exit();
             }
             
             if(!password_verify($password, $admin['password_hash'])) {
-                header('Location: ../admin-login.php?error=Invalid username or password');
+                header('Location: ../index.php?error=Invalid username or password');
                 exit();
             }
             
@@ -63,7 +63,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['admin_email'] = 'admin@wsu.ac.za';
                 $_SESSION['admin_role'] = 'super_admin';
             } else {
-                header('Location: ../admin-login.php?error=Invalid username or password');
+                header('Location: ../index.php?error=Invalid username or password');
                 exit();
             }
         }
@@ -72,10 +72,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
         
     } catch(PDOException $e) {
-        header('Location: ../admin-login.php?error=' . urlencode($e->getMessage()));
+        header('Location: ../index.php?error=' . urlencode($e->getMessage()));
         exit();
     }
 } else {
-    header('Location: ../admin-login.php');
+    header('Location: ../index.php');
     exit();
 }

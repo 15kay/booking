@@ -1,7 +1,7 @@
 <?php
 session_start();
 if(!isset($_SESSION['admin_id'])) {
-    header('Location: ../admin-login.php');
+    header('Location: ../index.php');
     exit();
 }
 
@@ -41,12 +41,12 @@ $stmt->execute();
 $recent_bookings = $stmt->fetchAll();
 
 // Get booking statistics by status
-$stmt = $conn->query("
-    SELECT status, COUNT(*) as count
-    FROM bookings
-    GROUP BY status
-");
-$booking_stats = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+$stmt = $conn->query("SELECT status, COUNT(*) as count FROM bookings GROUP BY status");
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$booking_stats = [];
+foreach($rows as $row) {
+    $booking_stats[$row['status']] = $row['count'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

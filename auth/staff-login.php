@@ -7,7 +7,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
     
     if(empty($staff_number) || empty($password)) {
-        header('Location: ../staff-login.php?error=Please fill in all fields');
+        header('Location: ../index.php?error=Please fill in all fields');
         exit();
     }
     
@@ -16,7 +16,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $conn = $db->connect();
         
         if(!$conn) {
-            header('Location: ../staff-login.php?error=Database connection failed');
+            header('Location: ../index.php?error=Database connection failed');
             exit();
         }
         
@@ -25,17 +25,17 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         $staff = $stmt->fetch();
         
         if(!$staff) {
-            header('Location: ../staff-login.php?error=Staff number not found');
+            header('Location: ../index.php?error=Staff number not found');
             exit();
         }
         
         if($staff['status'] != 'active') {
-            header('Location: ../staff-login.php?error=Account is not active');
+            header('Location: ../index.php?error=Account is not active');
             exit();
         }
         
         if(!password_verify($password, $staff['password_hash'])) {
-            header('Location: ../staff-login.php?error=Incorrect password');
+            header('Location: ../index.php?error=Incorrect password');
             exit();
         }
         
@@ -57,10 +57,10 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
         
     } catch(PDOException $e) {
-        header('Location: ../staff-login.php?error=' . urlencode($e->getMessage()));
+        header('Location: ../index.php?error=' . urlencode($e->getMessage()));
         exit();
     }
 } else {
-    header('Location: ../staff-login.php');
+    header('Location: ../index.php');
     exit();
 }

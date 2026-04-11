@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ':*)",
+      "Bash(php -r \"echo file_get_contents\\('c:/xampp/htdocs/booking/student/hub.php'\\);\")",
+      "Bash(php -r:*)",
+      "Bash(powershell -Command ':*)"
+    ]
+  }
+}
