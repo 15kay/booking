@@ -36,7 +36,7 @@ $initials     = strtoupper(substr(explode(' ', trim($student_name))[0], 0, 1) . 
 
         <a href="hub.php" class="nav-item <?php echo $current_page == 'hub.php' ? 'active' : ''; ?>" data-tooltip="WSU Hub">
             <div class="nav-icon"><i class="fas fa-th-large"></i></div>
-            <span>WSU Hub</span>
+            <span>WSU Hub - Iziko loMfundi</span>
         </a>
 
         <a href="book-service.php" class="nav-item <?php echo $current_page == 'book-service.php' ? 'active' : ''; ?>" data-tooltip="Book Service">
