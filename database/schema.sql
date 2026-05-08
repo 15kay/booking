@@ -359,3 +359,7 @@ INSERT INTO system_settings (setting_key, setting_value, description) VALUES
 ('reminder_hours', '24', 'Hours before appointment to send reminder'),
 ('max_active_bookings', '5', 'Maximum active bookings per student'),
 ('system_email', 'bookings@wsu.ac.za', 'System email for notifications');
+
+
+
+
