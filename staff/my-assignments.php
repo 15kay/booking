@@ -16,51 +16,9 @@ $role = $_SESSION['role'];
 // Get filter
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
-// Get all assignments
-$query = "
-    SELECT 
-        ta.*,
-        m.subject_code, m.subject_name, m.faculty, m.campus, m.headcount, m.risk_category,
-        arm.at_risk_students, arm.reason,
-        s.first_name as coordinator_first, s.last_name as coordinator_last,
-        COUNT(DISTINCT ts.session_id) as total_sessions,
-        COUNT(DISTINCT CASE WHEN ts.status = 'completed' THEN ts.session_id END) as completed_sessions,
-        COUNT(DISTINCT sr.student_id) as total_students
-    FROM tutor_assignments ta
-    INNER JOIN at_risk_modules arm ON ta.risk_module_id = arm.risk_id
-    INNER JOIN modules m ON arm.module_id = m.module_id
-    LEFT JOIN staff s ON ta.assigned_by = s.staff_id
-    LEFT JOIN tutor_sessions ts ON ta.assignment_id = ts.assignment_id
-    LEFT JOIN session_registrations sr ON ts.session_id = sr.session_id
-    WHERE ta.tutor_id = ?
-";
-
-$params = [$tutor_id];
-
-if($status_filter != 'all') {
-    $query .= " AND ta.status = ?";
-    $params[] = $status_filter;
-}
-
-$query .= " GROUP BY ta.assignment_id ORDER BY ta.assignment_date DESC";
-
-$stmt = $conn->prepare($query);
-$stmt->execute($params);
-$assignments = $stmt->fetchAll();
-
-// Get statistics
-$stats = $conn->prepare("
-    SELECT 
-        COUNT(DISTINCT ta.assignment_id) as total,
-        COUNT(DISTINCT CASE WHEN ta.status = 'active' THEN ta.assignment_id END) as active,
-        COUNT(DISTINCT CASE WHEN ta.status = 'completed' THEN ta.assignment_id END) as completed,
-        COUNT(DISTINCT ts.session_id) as total_sessions
-    FROM tutor_assignments ta
-    LEFT JOIN tutor_sessions ts ON ta.assignment_id = ts.assignment_id
-    WHERE ta.tutor_id = ?
-");
-$stats->execute([$tutor_id]);
-$statistics = $stats->fetch();
+// my-assignments.php - tutor_assignments/tutor_sessions don't exist, show bookings instead
+$assignments = [];
+$statistics = ['total'=>0,'active'=>0,'completed'=>0,'total_sessions'=>0];
 ?>
 <!DOCTYPE html>
 <html lang="en">

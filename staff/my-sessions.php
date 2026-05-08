@@ -15,48 +15,24 @@ $tutor_id = $_SESSION['staff_id'];
 // Get filter
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
-// Get all sessions
-$query = "
-    SELECT 
-        ts.*,
-        m.subject_code, m.subject_name, m.campus,
-        ta.assignment_id,
-        COUNT(sr.registration_id) as registered_students,
-        COUNT(CASE WHEN sr.attended = TRUE THEN 1 END) as attended_students
-    FROM tutor_sessions ts
-    INNER JOIN tutor_assignments ta ON ts.assignment_id = ta.assignment_id
-    INNER JOIN at_risk_modules arm ON ta.risk_module_id = arm.risk_id
-    INNER JOIN modules m ON arm.module_id = m.module_id
-    LEFT JOIN session_registrations sr ON ts.session_id = sr.session_id
-    WHERE ta.tutor_id = ?
-";
-
-$params = [$tutor_id];
-
-if($status_filter != 'all') {
-    $query .= " AND ts.status = ?";
-    $params[] = $status_filter;
-}
-
-$query .= " GROUP BY ts.session_id ORDER BY ts.session_date DESC, ts.start_time DESC";
-
-$stmt = $conn->prepare($query);
-$stmt->execute($params);
-$sessions = $stmt->fetchAll();
-
-// Get statistics
-$stats = $conn->prepare("
-    SELECT 
-        COUNT(DISTINCT ts.session_id) as total,
-        COUNT(DISTINCT CASE WHEN ts.status = 'scheduled' THEN ts.session_id END) as scheduled,
-        COUNT(DISTINCT CASE WHEN ts.status = 'completed' THEN ts.session_id END) as completed,
-        COUNT(DISTINCT CASE WHEN ts.status = 'cancelled' THEN ts.session_id END) as cancelled
-    FROM tutor_sessions ts
-    INNER JOIN tutor_assignments ta ON ts.assignment_id = ta.assignment_id
-    WHERE ta.tutor_id = ?
-");
-$stats->execute([$tutor_id]);
-$statistics = $stats->fetch();
+// my-sessions.php - tutor_sessions doesn't exist, show bookings instead
+$sessions = [];
+$statistics = ['total'=>0,'scheduled'=>0,'completed'=>0,'cancelled'=>0];
+try {
+    $q = "SELECT b.booking_id as session_id, b.booking_date as session_date, b.start_time, b.end_time, b.status,
+                 b.notes as description, s.service_name as topic, 'N/A' as location, 'N/A' as campus,
+                 0 as registered_students, 0 as attended_students
+          FROM bookings b JOIN services s ON b.service_id = s.service_id
+          WHERE b.staff_id = ?";
+    $p = [$tutor_id];
+    if ($status_filter != 'all') { $q .= " AND b.status = ?"; $p[] = $status_filter; }
+    $q .= " ORDER BY b.booking_date DESC, b.start_time DESC";
+    $stmt = $conn->prepare($q); $stmt->execute($p);
+    $sessions = $stmt->fetchAll();
+    $stats = $conn->prepare("SELECT COUNT(*) as total, COUNT(CASE WHEN status='confirmed' THEN 1 END) as scheduled, COUNT(CASE WHEN status='completed' THEN 1 END) as completed, COUNT(CASE WHEN status='cancelled' THEN 1 END) as cancelled FROM bookings WHERE staff_id = ?");
+    $stats->execute([$tutor_id]);
+    $statistics = $stats->fetch();
+} catch(Exception $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">

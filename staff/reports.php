@@ -59,7 +59,7 @@ $tutor_performance = $conn->prepare("
     WHERE s.role IN ('tutor', 'pal') AND arm.campus = ? AND ta.status = 'active'
     GROUP BY s.staff_id
     ORDER BY sessions_conducted DESC, avg_attendance DESC
-    LIMIT 10
+    OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY
 ");
 $tutor_performance->execute([$campus]);
 $top_tutors = $tutor_performance->fetchAll();
@@ -114,7 +114,7 @@ $recent_sessions = $conn->prepare("
     WHERE m.campus = ? AND ts.session_date BETWEEN ? AND ?
     GROUP BY ts.session_id
     ORDER BY ts.session_date DESC, ts.start_time DESC
-    LIMIT 15
+    OFFSET 0 ROWS FETCH NEXT 15 ROWS ONLY
 ");
 $recent_sessions->execute([$campus, $date_from, $date_to]);
 $sessions = $recent_sessions->fetchAll();
@@ -637,3 +637,4 @@ $sessions = $recent_sessions->fetchAll();
     <script src="js/dashboard.js"></script>
 </body>
 </html>
+

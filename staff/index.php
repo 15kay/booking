@@ -33,9 +33,9 @@ $stmt = $conn->prepare("
     FROM bookings b
     JOIN services s ON b.service_id = s.service_id
     JOIN students st ON b.student_id = st.student_id
-    WHERE b.staff_id = ? AND b.booking_date >= CURDATE() AND b.status IN ('pending', 'confirmed')
+    WHERE b.staff_id = ? AND b.booking_date >= CAST(GETDATE() AS DATE) AND b.status IN ('pending', 'confirmed')
     ORDER BY b.booking_date, b.start_time
-    LIMIT 5
+    OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
 ");
 $stmt->execute([$_SESSION['staff_id']]);
 $upcoming_bookings = $stmt->fetchAll();

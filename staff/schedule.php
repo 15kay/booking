@@ -30,40 +30,9 @@ $tutor_id = $staff_id;
 // Get selected assignment (if any)
 $selected_assignment_id = isset($_GET['assignment_id']) ? intval($_GET['assignment_id']) : 0;
 
-// Get all active assignments for this tutor
-$assignments_query = $conn->prepare("
-    SELECT 
-        ta.assignment_id,
-        ta.tutor_type,
-        m.subject_code, 
-        m.subject_name, 
-        m.faculty, 
-        m.campus,
-        arm.at_risk_students
-    FROM tutor_assignments ta
-    INNER JOIN at_risk_modules arm ON ta.risk_module_id = arm.risk_id
-    INNER JOIN modules m ON arm.module_id = m.module_id
-    WHERE ta.tutor_id = ? AND ta.status = 'active'
-    ORDER BY m.subject_code
-");
-$assignments_query->execute([$tutor_id]);
-$all_assignments = $assignments_query->fetchAll();
-
-// If no assignment selected but user has assignments, select the first one
-if($selected_assignment_id == 0 && count($all_assignments) > 0) {
-    $selected_assignment_id = $all_assignments[0]['assignment_id'];
-}
-
-// Get selected assignment details
-$selected_assignment = null;
-if($selected_assignment_id > 0) {
-    foreach($all_assignments as $assignment) {
-        if($assignment['assignment_id'] == $selected_assignment_id) {
-            $selected_assignment = $assignment;
-            break;
-        }
-    }
-}
+// tutor_assignments/tutor_sessions don't exist — redirect tutors to appointments
+header('Location: appointments.php');
+exit();
 
 // Get current month and year
 $month = isset($_GET['month']) ? intval($_GET['month']) : date('n');
@@ -126,111 +95,31 @@ if($next_month > 12) {
 $first_day = date('Y-m-01', strtotime("$year-$month-01"));
 $last_day = date('Y-m-t', strtotime("$year-$month-01"));
 
-// Get all sessions for the selected assignment
-if($selected_assignment_id > 0) {
-    $sessions = $conn->prepare("
-        SELECT 
-            ts.*,
-            m.subject_code, m.subject_name,
-            COUNT(sr.registration_id) as registered_students
-        FROM tutor_sessions ts
-        INNER JOIN tutor_assignments ta ON ts.assignment_id = ta.assignment_id
-        INNER JOIN at_risk_modules arm ON ta.risk_module_id = arm.risk_id
-        INNER JOIN modules m ON arm.module_id = m.module_id
-        LEFT JOIN session_registrations sr ON ts.session_id = sr.session_id
-        WHERE ta.assignment_id = ? AND ts.session_date BETWEEN ? AND ?
-        GROUP BY ts.session_id
-        ORDER BY ts.session_date, ts.start_time
-    ");
-    $sessions->execute([$selected_assignment_id, $first_day, $last_day]);
-    $all_sessions = $sessions->fetchAll();
-} else {
-    $all_sessions = [];
+// Get sessions from bookings table instead
+if($is_tutor) {
+    try {
+        $sessions = $conn->prepare("
+            SELECT b.booking_id as session_id, b.booking_date as session_date,
+                   b.start_time, b.end_time, b.status, b.notes as description,
+                   s.service_name as topic, s.service_name as subject_code, s.service_name as subject_name,
+                   0 as registered_students
+            FROM bookings b JOIN services s ON b.service_id = s.service_id
+            WHERE b.staff_id = ? AND b.booking_date BETWEEN ? AND ?
+            ORDER BY b.booking_date, b.start_time
+        ");
+        $sessions->execute([$tutor_id, $first_day, $last_day]);
+        $all_sessions = $sessions->fetchAll();
+    } catch(Exception $e) { $all_sessions = []; }
 }
 
 // Check if user has any active assignments
 $has_assignments = count($all_assignments) > 0;
 
-// Handle AJAX session creation
-if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajax']) && $selected_assignment_id > 0) {
+// Handle AJAX session creation - disabled since tutor_sessions table doesn't exist
+if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['ajax'])) {
     header('Content-Type: application/json');
-    
-    $session_date = $_POST['session_date'];
-    $start_time = $_POST['start_time'];
-    $end_time = $_POST['end_time'];
-    $location = trim($_POST['location']);
-    $topic = trim($_POST['topic']);
-    $description = trim($_POST['description']);
-    $max_capacity = intval($_POST['max_capacity']);
-    $session_type = $_POST['session_type'];
-    
-    // Validate end time is after start time
-    if($end_time <= $start_time) {
-        echo json_encode(['success' => false, 'message' => 'End time must be after start time.']);
-        exit();
-    }
-    
-    // Check for duplicate sessions
-    $duplicate_check = $conn->prepare("
-        SELECT ts.topic, ts.start_time, ts.end_time
-        FROM tutor_sessions ts
-        INNER JOIN tutor_assignments ta ON ts.assignment_id = ta.assignment_id
-        WHERE ta.tutor_id = ?
-        AND ts.session_date = ?
-        AND ts.status != 'cancelled'
-        AND (
-            (ts.start_time < ? AND ts.end_time > ?) OR
-            (ts.start_time < ? AND ts.end_time > ?) OR
-            (ts.start_time >= ? AND ts.end_time <= ?)
-        )
-    ");
-    
-    $duplicate_check->execute([
-        $tutor_id,
-        $session_date,
-        $end_time, $start_time,
-        $end_time, $start_time,
-        $start_time, $end_time
-    ]);
-    
-    $duplicates = $duplicate_check->fetchAll();
-    
-    if(count($duplicates) > 0) {
-        $duplicate = $duplicates[0];
-        $message = "You already have a session scheduled on this date from " . 
-                   date('H:i', strtotime($duplicate['start_time'])) . " to " . 
-                   date('H:i', strtotime($duplicate['end_time'])) . 
-                   " (" . htmlspecialchars($duplicate['topic']) . "). Please choose a different time.";
-        echo json_encode(['success' => false, 'message' => $message]);
-        exit();
-    }
-    
-    try {
-        $insert = $conn->prepare("
-            INSERT INTO tutor_sessions 
-            (assignment_id, session_date, start_time, end_time, location, topic, 
-             description, max_capacity, session_type, status, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', NOW())
-        ");
-        
-        $insert->execute([
-            $selected_assignment_id, $session_date, $start_time, $end_time, 
-            $location, $topic, $description, $max_capacity, $session_type
-        ]);
-        
-        $session_id = $conn->lastInsertId();
-        
-        echo json_encode([
-            'success' => true, 
-            'message' => 'Session created successfully!',
-            'session_id' => $session_id
-        ]);
-        exit();
-        
-    } catch(PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Error creating session: ' . $e->getMessage()]);
-        exit();
-    }
+    echo json_encode(['success' => false, 'message' => 'Session creation via this page is not available. Please use Book Service instead.']);
+    exit();
 }
 
 // Organize sessions by date
@@ -570,23 +459,21 @@ $days_in_month = date('t', strtotime($first_day));
 
                 <!-- Upcoming Sessions List -->
                 <?php
-                $upcoming = $conn->prepare("
-                    SELECT 
-                        ts.*,
-                        m.subject_code, m.subject_name,
-                        COUNT(sr.registration_id) as registered_students
-                    FROM tutor_sessions ts
-                    INNER JOIN tutor_assignments ta ON ts.assignment_id = ta.assignment_id
-                    INNER JOIN at_risk_modules arm ON ta.risk_module_id = arm.risk_id
-                    INNER JOIN modules m ON arm.module_id = m.module_id
-                    LEFT JOIN session_registrations sr ON ts.session_id = sr.session_id
-                    WHERE ta.tutor_id = ? AND ts.session_date >= CURDATE() AND ts.status = 'scheduled'
-                    GROUP BY ts.session_id
-                    ORDER BY ts.session_date, ts.start_time
-                    LIMIT 5
-                ");
-                $upcoming->execute([$tutor_id]);
-                $upcoming_sessions = $upcoming->fetchAll();
+                $upcoming_sessions = [];
+                try {
+                    $upcoming = $conn->prepare("
+                        SELECT b.booking_id as session_id, b.booking_date as session_date,
+                               b.start_time, b.end_time, b.status, b.notes as description,
+                               s.service_name as topic, s.service_name as subject_code,
+                               'N/A' as location, 0 as registered_students
+                        FROM bookings b JOIN services s ON b.service_id = s.service_id
+                        WHERE b.staff_id = ? AND b.booking_date >= CAST(GETDATE() AS DATE) AND b.status = 'confirmed'
+                        ORDER BY b.booking_date, b.start_time
+                        OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+                    ");
+                    $upcoming->execute([$tutor_id]);
+                    $upcoming_sessions = $upcoming->fetchAll();
+                } catch(Exception $e) {}
                 ?>
                 
                 <?php if(count($upcoming_sessions) > 0): ?>
@@ -986,3 +873,4 @@ $days_in_month = date('t', strtotime($first_day));
     </script>
 </body>
 </html>
+

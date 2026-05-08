@@ -309,21 +309,40 @@ GO
 
 IF NOT EXISTS (SELECT 1 FROM dbo.staff)
 BEGIN
-    INSERT INTO dbo.staff (staff_number, first_name, last_name, email, password_hash, phone, department_id, role, qualification, specialization) VALUES
-    ('STF001','Dr. Sarah', 'Mthembu','sarah.mthembu@wsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0827654321',4,'counsellor',       'PhD Clinical Psychology','Trauma and Anxiety'),
-    ('STF002','Prof. John','Ndlovu', 'john.ndlovu@wsu.ac.za',  '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0823456789',1,'academic_advisor', 'PhD Education',          'Academic Development'),
-    ('STF003','Ms. Linda', 'Khumalo','linda.khumalo@wsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0829876543',5,'career_counsellor','MA Career Counselling',  'Career Development'),
-    ('STF004','Mr. Thabo', 'Dlamini','thabo.dlamini@wsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0821234567',4,'counsellor',       'MA Counselling Psychology','Student Wellness'),
-    ('STF005','Dr. Nomsa', 'Zulu',   'nomsa.zulu@wsu.ac.za',   '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0834567890',3,'financial_advisor','BCom Honours',           'Financial Aid');
+    INSERT INTO dbo.staff (staff_number, first_name, last_name, email, password_hash, phone, department_id, role, qualification, specialization, assigned_campus) VALUES
+    -- Counsellors
+    ('STF001','Sarah',  'Mthembu','sarah.mthembu@wsu.ac.za',  '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0827654321',4,'counsellor',        'PhD Clinical Psychology',   'Trauma and Anxiety',    'Butterworth'),
+    ('STF004','Thabo',  'Dlamini','thabo.dlamini@wsu.ac.za',  '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0821234567',4,'counsellor',        'MA Counselling Psychology', 'Student Wellness',      'Mthatha'),
+    -- Academic Advisors
+    ('STF002','John',   'Ndlovu', 'john.ndlovu@wsu.ac.za',    '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0823456789',1,'academic_advisor',  'PhD Education',             'Academic Development',  'Butterworth'),
+    -- Career Counsellors
+    ('STF003','Linda',  'Khumalo','linda.khumalo@wsu.ac.za',  '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0829876543',5,'career_counsellor', 'MA Career Counselling',     'Career Development',    'Mthatha'),
+    -- Financial Advisors
+    ('STF005','Nomsa',  'Zulu',   'nomsa.zulu@wsu.ac.za',     '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0834567890',3,'financial_advisor', 'BCom Honours',              'Financial Aid',         'Butterworth'),
+    -- Admin staff
+    ('STF006','Lungelo','Nkosi',  'lungelo.nkosi@wsu.ac.za',  '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0811234567',2,'admin',             'BCom Administration',       'Office Management',     'Mthatha'),
+    -- Tutors
+    ('STF007','Ayanda', 'Cele',   'ayanda.cele@wsu.ac.za',    '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0812345678',1,'tutor',             'BSc Computer Science',      'Mathematics and CS',    'Butterworth'),
+    ('STF008','Zanele', 'Mokoena','zanele.mokoena@wsu.ac.za', '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0813456789',2,'tutor',             'BCom Accounting',           'Accounting and Finance','Mthatha'),
+    -- PAL (Peer Assisted Learning)
+    ('STF009','Siyanda','Dube',   'siyanda.dube@wsu.ac.za',   '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0814567890',1,'pal',               'BSc 3rd Year',              'Physics and Maths',     'Butterworth'),
+    ('STF010','Nokwanda','Sithole','nokwanda.sithole@wsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0815678901',3,'pal',              'BCom 3rd Year',             'Business Studies',      'Mthatha'),
+    -- Coordinators
+    ('STF011','Mandla', 'Ntuli',  'mandla.ntuli@wsu.ac.za',   '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0816789012',1,'coordinator',      'MEd Higher Education',      'Academic Coordination', 'Butterworth'),
+    ('STF012','Bongiwe','Mthembu','bongiwe.mthembu@wsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0817890123',2,'coordinator',      'MBA',                       'Student Coordination',  'Mthatha');
 END
 GO
 
 IF NOT EXISTS (SELECT 1 FROM dbo.students)
 BEGIN
     INSERT INTO dbo.students (student_id, first_name, last_name, email, password_hash, phone, faculty_id, year_of_study, student_type) VALUES
-    ('202401234','Sipho',   'Mbeki',  '202401234@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0821234567',1,2,'undergraduate'),
-    ('202401235','Thandi',  'Nkosi',  '202401235@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0829876543',2,3,'undergraduate'),
-    ('202401236','Bongani', 'Sithole','202401236@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0834567890',3,1,'undergraduate');
+    ('202401234','Sipho',    'Mbeki',   '202401234@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0821234567',1,2,'undergraduate'),
+    ('202401235','Thandi',   'Nkosi',   '202401235@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0829876543',2,3,'undergraduate'),
+    ('202401236','Bongani',  'Sithole', '202401236@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0834567890',3,1,'undergraduate'),
+    ('202401237','Nompilo',  'Dlamini', '202401237@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0835678901',4,2,'undergraduate'),
+    ('202401238','Lethiwe',  'Zulu',    '202401238@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0836789012',5,1,'undergraduate'),
+    ('202401239','Mthokozisi','Ndlovu', '202401239@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0837890123',1,4,'postgraduate'),
+    ('202401240','Ayabonga', 'Cele',    '202401240@mywsu.ac.za','$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC','0838901234',2,3,'honours');
 END
 GO
 
@@ -370,5 +389,31 @@ BEGIN
     ('reminder_hours',      '24',              'Hours before appointment to send reminder'),
     ('max_active_bookings', '5',               'Maximum active bookings per student'),
     ('system_email',        'bookings@wsu.ac.za','System email for notifications');
+END
+GO
+
+-- ============================================
+-- ADMINS TABLE
+-- ============================================
+
+IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='admins' AND xtype='U')
+CREATE TABLE dbo.admins (
+    admin_id      INT IDENTITY(1,1) PRIMARY KEY,
+    username      VARCHAR(50)  NOT NULL UNIQUE,
+    full_name     VARCHAR(100) NOT NULL,
+    email         VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role          VARCHAR(30)  NOT NULL DEFAULT 'admin' CHECK (role IN ('super_admin','admin')),
+    status        VARCHAR(10)  NOT NULL DEFAULT 'active' CHECK (status IN ('active','inactive')),
+    last_login    DATETIME     NULL,
+    created_at    DATETIME     NOT NULL DEFAULT GETDATE()
+);
+GO
+
+-- Seed: admin / admin123
+IF NOT EXISTS (SELECT 1 FROM dbo.admins)
+BEGIN
+    INSERT INTO dbo.admins (username, full_name, email, password_hash, role) VALUES
+    ('admin', 'System Administrator', 'admin@wsu.ac.za', '$2y$10$T./d56vL6qf6PHYYdZA7/.8IRTzCC0tkBc0qeh0XXKzSKJzaFP0qC', 'super_admin');
 END
 GO

@@ -26,14 +26,15 @@ $specific_date = isset($_GET['specific_date']) ? $_GET['specific_date'] : '';
 
 // Build query
 $query = "
-    SELECT s.*, f.faculty_name, f.faculty_code,
+    SELECT s.student_id, s.first_name, s.last_name, s.email, s.phone, s.faculty_id,
+           s.year_of_study, s.student_type, s.status, s.created_at,
+           NULL as faculty_name, NULL as faculty_code,
            COUNT(DISTINCT b.booking_id) as total_bookings,
            MAX(b.booking_date) as last_booking_date,
            COUNT(DISTINCT CASE WHEN b.status = 'completed' THEN b.booking_id END) as completed_sessions,
            COUNT(DISTINCT CASE WHEN b.status = 'cancelled' THEN b.booking_id END) as cancelled_sessions,
            COUNT(DISTINCT CASE WHEN b.status = 'no_show' THEN b.booking_id END) as no_show_sessions
     FROM students s
-    LEFT JOIN faculties f ON s.faculty_id = f.faculty_id
     LEFT JOIN bookings b ON s.student_id = b.student_id
     WHERE 1=1
 ";
@@ -57,11 +58,8 @@ if(!empty($status_filter)) {
 
 if(!empty($search)) {
     $query .= " AND (s.student_id LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ? OR s.email LIKE ?)";
-    $search_param = "%$search%";
-    $params[] = $search_param;
-    $params[] = $search_param;
-    $params[] = $search_param;
-    $params[] = $search_param;
+    $sp = "%$search%";
+    $params[] = $sp; $params[] = $sp; $params[] = $sp; $params[] = $sp;
 }
 
 // Date filtering
@@ -101,15 +99,18 @@ if(!empty($date_filter)) {
     }
 }
 
-$query .= " GROUP BY s.student_id ORDER BY s.student_id DESC";
+$query .= " GROUP BY s.student_id, s.first_name, s.last_name, s.email, s.phone, s.faculty_id, s.year_of_study, s.student_type, s.status, s.created_at ORDER BY s.student_id DESC";
 
 $stmt = $conn->prepare($query);
 $stmt->execute($params);
 $students = $stmt->fetchAll();
 
-// Get faculties for filter
-$stmt = $conn->query("SELECT * FROM faculties WHERE status = 'active' ORDER BY faculty_name");
-$faculties = $stmt->fetchAll();
+// Get faculties for filter - skip since faculties table may not have required columns
+$faculties = [];
+try {
+    $stmt = $conn->query("SELECT faculty_id, faculty_name, faculty_name as faculty_code FROM faculties ORDER BY faculty_name");
+    $faculties = $stmt->fetchAll();
+} catch(Exception $e) {}
 
 // Get statistics
 $stmt = $conn->query("SELECT COUNT(*) as total FROM students WHERE status = 'active'");

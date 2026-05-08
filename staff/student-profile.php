@@ -19,9 +19,8 @@ $conn = $db->connect();
 
 // Get student details
 $stmt = $conn->prepare("
-    SELECT s.*, f.faculty_name, f.faculty_code
+    SELECT s.*, s.faculty_id as faculty_name, NULL as faculty_code
     FROM students s
-    LEFT JOIN faculties f ON s.faculty_id = f.faculty_id
     WHERE s.student_id = ?
 ");
 $stmt->execute([$student_id]);
@@ -54,7 +53,7 @@ $stmt = $conn->prepare("
     JOIN staff st ON b.staff_id = st.staff_id
     WHERE b.student_id = ?
     ORDER BY b.booking_date DESC, b.start_time DESC
-    LIMIT 10
+    OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY
 ");
 $stmt->execute([$student_id]);
 $recent_bookings = $stmt->fetchAll();
@@ -66,7 +65,7 @@ $stmt = $conn->prepare("
     JOIN services s ON b.service_id = s.service_id
     JOIN service_categories sc ON s.category_id = sc.category_id
     WHERE b.student_id = ? AND b.status = 'completed'
-    GROUP BY sc.category_id
+    GROUP BY sc.category_id, sc.category_name
     ORDER BY usage_count DESC
 ");
 $stmt->execute([$student_id]);
@@ -76,7 +75,6 @@ $service_usage = $stmt->fetchAll();
 $engagement_score = 0;
 $success_score = 0;
 
-// Prioritize reading_score from database
 if(isset($student['reading_score']) && $student['reading_score'] !== null && $student['reading_score'] > 0) {
     $success_score = round($student['reading_score']);
 } elseif($booking_stats['total_bookings'] > 0) {
@@ -956,3 +954,4 @@ if($success_score >= 80) {
     <script src="../assets/js/modals.js"></script>
 </body>
 </html>
+

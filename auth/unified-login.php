@@ -27,7 +27,7 @@ try {
     if(!$conn) redirectError('Database connection failed');
 
     // ── 1. Try Admin (hardcoded fallback) ──────────────────────────────
-    $adminTable = $conn->prepare("SHOW TABLES LIKE 'admins'");
+    $adminTable = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'admins'");
     $adminTable->execute();
 
     if($adminTable->rowCount() > 0) {

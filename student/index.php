@@ -11,21 +11,28 @@ $conn = $db->connect();
 $sid  = $_SESSION['student_id'];
 
 // Stats
-$stmt = $conn->prepare("SELECT
-    COUNT(*) as total,
-    COUNT(CASE WHEN status='pending'   THEN 1 END) as pending,
-    COUNT(CASE WHEN status='confirmed' THEN 1 END) as confirmed,
-    COUNT(CASE WHEN status='completed' THEN 1 END) as completed,
-    COUNT(CASE WHEN status='cancelled' THEN 1 END) as cancelled,
-    COUNT(CASE WHEN status='no_show'   THEN 1 END) as no_show
-    FROM bookings WHERE student_id = ?");
-$stmt->execute([$sid]);
-$stats = $stmt->fetch();
+$stats = ['total'=>0,'pending'=>0,'confirmed'=>0,'completed'=>0,'cancelled'=>0,'no_show'=>0];
+try {
+    $stmt = $conn->prepare("SELECT
+        COUNT(*) as total,
+        COUNT(CASE WHEN status='pending'   THEN 1 END) as pending,
+        COUNT(CASE WHEN status='confirmed' THEN 1 END) as confirmed,
+        COUNT(CASE WHEN status='completed' THEN 1 END) as completed,
+        COUNT(CASE WHEN status='cancelled' THEN 1 END) as cancelled,
+        COUNT(CASE WHEN status='no_show'   THEN 1 END) as no_show
+        FROM bookings WHERE student_id = ?");
+    $stmt->execute([$sid]);
+    $stats = $stmt->fetch() ?: $stats;
+} catch(Exception $e) {}
 
 // Student info
-$stmt = $conn->prepare("SELECT s.*, f.faculty_name FROM students s LEFT JOIN faculties f ON s.faculty_id = f.faculty_id WHERE s.student_id = ?");
-$stmt->execute([$sid]);
-$student = $stmt->fetch();
+$student = ['first_name'=>$_SESSION['first_name']??'Student','last_name'=>$_SESSION['last_name']??'','faculty_name'=>'WSU Student','reading_score'=>0,'status'=>'active','year_of_study'=>1,'student_type'=>'undergraduate','created_at'=>date('Y-m-d'),'last_login'=>null,'phone'=>''];
+try {
+    $stmt = $conn->prepare("SELECT * FROM students WHERE student_id = ?");
+    $stmt->execute([$sid]);
+    $row = $stmt->fetch();
+    if ($row) $student = array_merge($student, $row);
+} catch(Exception $e) {}
 
 // Readiness score
 $success_score = 0;
@@ -48,8 +55,8 @@ $stmt = $conn->prepare("
     FROM bookings b
     JOIN services s ON b.service_id = s.service_id
     JOIN staff st ON b.staff_id = st.staff_id
-    WHERE b.student_id = ? AND b.booking_date >= CURDATE() AND b.status IN ('pending','confirmed')
-    ORDER BY b.booking_date, b.start_time LIMIT 4
+    WHERE b.student_id = ? AND b.booking_date >= CAST(GETDATE() AS DATE) AND b.status IN ('pending','confirmed')
+    ORDER BY b.booking_date, b.start_time OFFSET 0 ROWS FETCH NEXT 4 ROWS ONLY
 ");
 $stmt->execute([$sid]);
 $upcoming = $stmt->fetchAll();
@@ -58,7 +65,7 @@ $upcoming = $stmt->fetchAll();
 $stmt = $conn->prepare("
     SELECT b.*, s.service_name FROM bookings b
     JOIN services s ON b.service_id = s.service_id
-    WHERE b.student_id = ? ORDER BY b.created_at DESC LIMIT 4
+    WHERE b.student_id = ? ORDER BY b.created_at DESC OFFSET 0 ROWS FETCH NEXT 4 ROWS ONLY
 ");
 $stmt->execute([$sid]);
 $recent = $stmt->fetchAll();

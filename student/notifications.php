@@ -18,7 +18,7 @@ $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $unread_count = count(array_filter($notifications, fn($n) => !$n['is_read']));
 
 // Mark all as read
-$conn->prepare("UPDATE notifications SET is_read = 1, read_at = NOW() WHERE user_id = ? AND user_type = 'student' AND is_read = 0")->execute([$student_id]);
+$conn->prepare("UPDATE notifications SET is_read = 1, read_at = GETDATE() WHERE user_id = ? AND user_type = 'student' AND is_read = 0")->execute([$student_id]);
 
 function time_ago($datetime) {
     $diff = time() - strtotime($datetime);

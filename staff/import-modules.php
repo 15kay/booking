@@ -126,7 +126,7 @@ $recent_modules = $conn->query("
     SELECT * FROM modules 
     WHERE status = 'active'
     ORDER BY created_at DESC 
-    LIMIT 10
+    OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY
 ")->fetchAll();
 ?>
 <!DOCTYPE html>
@@ -391,3 +391,4 @@ $recent_modules = $conn->query("
     <script src="js/dashboard.js"></script>
 </body>
 </html>
+

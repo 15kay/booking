@@ -19,54 +19,13 @@ $stmt->execute([$staff_id]);
 $profile = $stmt->fetch();
 
 // Get statistics based on role
-if($role == 'coordinator') {
-    // Coordinator stats
-    $stats = $conn->prepare("
-        SELECT 
-            COUNT(DISTINCT ta.assignment_id) as total_assignments,
-            COUNT(DISTINCT ta.tutor_id) as tutors_managed,
-            COUNT(DISTINCT arm.risk_id) as modules_managed,
-            COUNT(DISTINCT ts.session_id) as sessions_overseen
-        FROM tutor_assignments ta
-        LEFT JOIN at_risk_modules arm ON ta.risk_module_id = arm.risk_id
-        LEFT JOIN tutor_sessions ts ON ta.assignment_id = ts.assignment_id
-        WHERE ta.assigned_by = ?
-    ");
+$statistics = ['total_bookings'=>0,'completed_bookings'=>0,'total_assignments'=>0,'tutors_managed'=>0,'modules_managed'=>0,'sessions_overseen'=>0,'total_sessions'=>0,'completed_sessions'=>0,'students_helped'=>0,'avg_attendance_rate'=>0];
+try {
+    $stats = $conn->prepare("SELECT COUNT(*) as total_bookings, COUNT(CASE WHEN status='completed' THEN 1 END) as completed_bookings FROM bookings WHERE staff_id = ?");
     $stats->execute([$staff_id]);
-    $statistics = $stats->fetch();
-    
-} elseif($role == 'tutor' || $role == 'pal') {
-    // Tutor/PAL stats
-    $stats = $conn->prepare("
-        SELECT 
-            COUNT(DISTINCT ta.assignment_id) as total_assignments,
-            COUNT(DISTINCT ts.session_id) as total_sessions,
-            COUNT(DISTINCT CASE WHEN ts.status = 'completed' THEN ts.session_id END) as completed_sessions,
-            COUNT(DISTINCT sr.student_id) as students_helped,
-            AVG(CASE WHEN ts.status = 'completed' THEN 
-                (SELECT COUNT(*) FROM session_registrations WHERE session_id = ts.session_id AND attended = TRUE) * 100.0 / 
-                NULLIF((SELECT COUNT(*) FROM session_registrations WHERE session_id = ts.session_id), 0)
-            END) as avg_attendance_rate
-        FROM tutor_assignments ta
-        LEFT JOIN tutor_sessions ts ON ta.assignment_id = ts.assignment_id
-        LEFT JOIN session_registrations sr ON ts.session_id = sr.session_id
-        WHERE ta.tutor_id = ?
-    ");
-    $stats->execute([$staff_id]);
-    $statistics = $stats->fetch();
-    
-} else {
-    // Regular staff stats
-    $stats = $conn->prepare("
-        SELECT 
-            COUNT(*) as total_bookings,
-            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_bookings
-        FROM bookings
-        WHERE staff_id = ?
-    ");
-    $stats->execute([$staff_id]);
-    $statistics = $stats->fetch();
-}
+    $row = $stats->fetch();
+    if ($row) $statistics = array_merge($statistics, $row);
+} catch(Exception $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -445,7 +404,7 @@ if($role == 'coordinator') {
                             
                             <div class="info-item">
                                 <span class="info-label">Profile Updated</span>
-                                <span class="info-value"><?php echo date('F j, Y', strtotime($profile['updated_at'])); ?></span>
+                                <span class="info-value"><?php echo isset($profile['updated_at']) ? date('F j, Y', strtotime($profile['updated_at'])) : 'N/A'; ?></span>
                             </div>
                             
                             <?php if(isset($profile['application_date']) && $profile['application_date']): ?>

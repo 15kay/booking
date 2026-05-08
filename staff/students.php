@@ -28,30 +28,28 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Different queries based on role
 if($is_tutor) {
-    // For tutors/PALs: Get ALL students enrolled in modules they're assigned to
+    // Tutors: show students who have bookings with this tutor
     $query = "
         SELECT DISTINCT
-            st.student_id, st.first_name, st.last_name, st.email, st.phone, st.reading_score,
-            GROUP_CONCAT(DISTINCT m.subject_code ORDER BY m.subject_code SEPARATOR ', ') as modules,
-            GROUP_CONCAT(DISTINCT m.subject_name ORDER BY m.subject_name SEPARATOR ', ') as module_names
-        FROM students st
-        INNER JOIN student_modules sm ON st.student_id = sm.student_id
-        INNER JOIN modules m ON sm.module_id = m.module_id
-        INNER JOIN at_risk_modules arm ON m.module_id = arm.module_id
-        INNER JOIN tutor_assignments ta ON arm.risk_id = ta.risk_module_id
-        WHERE ta.tutor_id = ? AND ta.status = 'active' AND sm.status = 'active'
-    ";
-    $params = [$staff_id];
-} else {
-    // For counselors/advisors: Get students who have appointments
-    $query = "
-        SELECT DISTINCT
-            st.student_id, st.first_name, st.last_name, st.email, st.phone, st.reading_score,
+            st.student_id, st.first_name, st.last_name, st.email, st.phone,
             COUNT(DISTINCT b.booking_id) as total_appointments,
             COUNT(DISTINCT CASE WHEN b.status = 'completed' THEN b.booking_id END) as completed_appointments,
             COUNT(DISTINCT CASE WHEN b.status = 'confirmed' THEN b.booking_id END) as upcoming_appointments,
-            MAX(b.booking_date) as last_appointment_date,
-            GROUP_CONCAT(DISTINCT s.service_name ORDER BY s.service_name SEPARATOR ', ') as services
+            MAX(b.booking_date) as last_appointment_date
+        FROM students st
+        INNER JOIN bookings b ON st.student_id = b.student_id
+        WHERE b.staff_id = ?
+    ";
+    $params = [$staff_id];
+} else {
+    // Counselors: show students who have bookings with this staff
+    $query = "
+        SELECT DISTINCT
+            st.student_id, st.first_name, st.last_name, st.email, st.phone,
+            COUNT(DISTINCT b.booking_id) as total_appointments,
+            COUNT(DISTINCT CASE WHEN b.status = 'completed' THEN b.booking_id END) as completed_appointments,
+            COUNT(DISTINCT CASE WHEN b.status = 'confirmed' THEN b.booking_id END) as upcoming_appointments,
+            MAX(b.booking_date) as last_appointment_date
         FROM students st
         INNER JOIN bookings b ON st.student_id = b.student_id
         INNER JOIN services s ON b.service_id = s.service_id
@@ -66,45 +64,27 @@ if($search != '') {
     $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param]);
 }
 
-$query .= " GROUP BY st.student_id ORDER BY st.last_name, st.first_name";
+$query .= " GROUP BY st.student_id, st.first_name, st.last_name, st.email, st.phone ORDER BY st.last_name, st.first_name";
 
 $stmt = $conn->prepare($query);
 $stmt->execute($params);
 $students = $stmt->fetchAll();
 
-// Get statistics based on role
-if($is_tutor) {
-    $stats = $conn->prepare("
-        SELECT 
-            COUNT(DISTINCT st.student_id) as total_students
-        FROM students st
-        INNER JOIN student_modules sm ON st.student_id = sm.student_id
-        INNER JOIN modules m ON sm.module_id = m.module_id
-        INNER JOIN at_risk_modules arm ON m.module_id = arm.module_id
-        INNER JOIN tutor_assignments ta ON arm.risk_id = ta.risk_module_id
-        WHERE ta.tutor_id = ? AND ta.status = 'active' AND sm.status = 'active'
-    ");
-    $stats->execute([$staff_id]);
-    $statistics = $stats->fetch();
-    $statistics['total_sessions'] = 0;
-    $statistics['total_attended'] = 0;
-    $attendance_rate = 0;
-} else {
-    $stats = $conn->prepare("
-        SELECT 
-            COUNT(DISTINCT st.student_id) as total_students,
-            COUNT(DISTINCT b.booking_id) as total_appointments,
-            COUNT(DISTINCT CASE WHEN b.status = 'completed' THEN b.booking_id END) as completed_appointments
-        FROM students st
-        INNER JOIN bookings b ON st.student_id = b.student_id
-        WHERE b.staff_id = ?
-    ");
-    $stats->execute([$staff_id]);
-    $statistics = $stats->fetch();
-
-    $completion_rate = $statistics['total_appointments'] > 0 ? 
-        ($statistics['completed_appointments'] / $statistics['total_appointments']) * 100 : 0;
-}
+// Get statistics
+$stats = $conn->prepare("
+    SELECT
+        COUNT(DISTINCT st.student_id) as total_students,
+        COUNT(DISTINCT b.booking_id) as total_appointments,
+        COUNT(DISTINCT CASE WHEN b.status = 'completed' THEN b.booking_id END) as completed_appointments
+    FROM students st
+    INNER JOIN bookings b ON st.student_id = b.student_id
+    WHERE b.staff_id = ?
+");
+$stats->execute([$staff_id]);
+$statistics = $stats->fetch();
+$statistics['total_students'] = $statistics['total_students'] ?? 0;
+$completion_rate = $statistics['total_appointments'] > 0 ?
+    ($statistics['completed_appointments'] / $statistics['total_appointments']) * 100 : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -55,7 +55,7 @@ $sessions_stmt = $conn->prepare("
     WHERE ta.risk_module_id = ? AND ts.session_date >= CURDATE()
     GROUP BY ts.session_id
     ORDER BY ts.session_date, ts.start_time
-    LIMIT 10
+    OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY
 ");
 $sessions_stmt->execute([$risk_id]);
 $sessions = $sessions_stmt->fetchAll();
@@ -294,3 +294,4 @@ $colors = $risk_colors[$module['risk_level']];
     <script src="js/dashboard.js"></script>
 </body>
 </html>
+

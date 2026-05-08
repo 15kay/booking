@@ -12,11 +12,11 @@ $conn = $db->connect();
 
 // Get all service categories with services
 $stmt = $conn->query("
-    SELECT sc.*, COUNT(s.service_id) as service_count
+    SELECT sc.category_id, sc.category_name, sc.description, sc.icon, sc.display_order, sc.status, sc.created_at, COUNT(s.service_id) as service_count
     FROM service_categories sc
     LEFT JOIN services s ON sc.category_id = s.category_id AND s.status = 'active'
     WHERE sc.status = 'active'
-    GROUP BY sc.category_id
+    GROUP BY sc.category_id, sc.category_name, sc.description, sc.icon, sc.display_order, sc.status, sc.created_at
     ORDER BY sc.display_order
 ");
 $categories = $stmt->fetchAll();

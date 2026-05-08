@@ -368,9 +368,13 @@ if (!isset($_SESSION['student_id'])) {
             gap: 6px;
             white-space: nowrap;
         }
-        .mb-btn-newtab { background: var(--gold); color: var(--crimson-dk); }
+        .mb-btn-newtab   { background: var(--gold); color: var(--crimson-dk); }
         .mb-btn-newtab:hover { background: var(--gold-lt); }
-        .mb-btn-close  { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); }
+        .mb-btn-refresh  { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); padding: 7px 11px; }
+        .mb-btn-refresh:hover { background: rgba(255,255,255,0.22); }
+        .mb-btn-refresh i { transition: transform .35s ease; }
+        .mb-btn-refresh.spinning i { animation: mbspin 0.7s linear infinite; }
+        .mb-btn-close    { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.8); }
         .mb-btn-close:hover { background: rgba(255,255,255,0.20); }
         .mini-browser iframe { flex: 1; border: none; width: 100%; }
         .mini-browser-blocked {
@@ -728,6 +732,7 @@ if (!isset($_SESSION['student_id'])) {
             </div>
             <span class="mb-title" id="mbTitle"></span>
             <span class="mb-url" id="mbUrl"></span>
+            <button class="mb-btn-refresh" id="mbRefresh" title="Refresh"><i class="fas fa-redo"></i></button>
             <button class="mb-btn-newtab" id="mbNewTab"><i class="fas fa-external-link-alt"></i> New Tab</button>
             <button class="mb-btn-close" id="mbCloseBtn"><i class="fas fa-times"></i> Close</button>
         </div>
@@ -756,45 +761,74 @@ if (!isset($_SESSION['student_id'])) {
     var mbClose   = document.getElementById('mbClose');
     var mbBlocked = document.getElementById('mbBlocked');
     var mbLoading = document.getElementById('mbLoading');
-    var blockTimer = null;
+    var blockTimer   = null;
+    var currentLoadUrl = '';
+    var currentOrigUrl = '';
+    var mbRefresh    = document.getElementById('mbRefresh');
+
+    function setLoading() {
+        mbLoading.style.display = 'flex';
+        mbFrame.style.display   = 'none';
+        mbBlocked.style.display = 'none';
+        mbRefresh.classList.add('spinning');
+        clearTimeout(blockTimer);
+        blockTimer = setTimeout(showBlocked, 10000);
+    }
 
     function closeModal() {
         clearTimeout(blockTimer);
         overlay.classList.remove('active');
         mbFrame.src = 'about:blank';
-        mbFrame.style.display = 'none';
+        mbFrame.style.display   = 'none';
         mbLoading.style.display = 'none';
         mbBlocked.style.display = 'none';
+        mbRefresh.classList.remove('spinning');
         document.body.style.overflow = '';
     }
 
     function showBlocked() {
         clearTimeout(blockTimer);
-        mbLoading.style.display = 'none';
-        mbFrame.style.display = 'none';
-        mbBlocked.style.display = 'flex';
+        mbRefresh.classList.remove('spinning');
+        closeModal();
+        window.open(currentOrigUrl, '_blank');
     }
 
     function openMiniBrowser(url, title) {
+        currentOrigUrl  = url;
+        currentLoadUrl  = /^https?:\/\//i.test(url) ? 'proxy.php?url=' + encodeURIComponent(url) : url;
         mbTitle.textContent = title;
-        mbUrl.textContent = url;
-        mbNewTab.onclick = function() { window.open(url, '_blank'); };
+        mbUrl.textContent   = url;
+        mbNewTab.onclick    = function() { window.open(url, '_blank'); };
         document.getElementById('mbBlockedLink').href = url;
-        mbBlocked.style.display = 'none';
-        mbFrame.style.display = 'none';
-        mbLoading.style.display = 'flex';
-        mbFrame.src = url;
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
-        clearTimeout(blockTimer);
-        blockTimer = setTimeout(showBlocked, 5000);
+        mbFrame.src = currentLoadUrl;
+        setLoading();
     }
+
+    mbRefresh.addEventListener('click', function() {
+        if (!currentLoadUrl) return;
+        // Cache-bust so the proxy re-fetches
+        var sep = currentLoadUrl.indexOf('?') !== -1 ? '&' : '?';
+        mbFrame.src = currentLoadUrl + sep + '_r=' + Date.now();
+        setLoading();
+    });
 
     mbFrame.addEventListener('load', function() {
         if (!mbFrame.src || mbFrame.src === 'about:blank') return;
         clearTimeout(blockTimer);
+        mbRefresh.classList.remove('spinning');
+        try {
+            var doc  = mbFrame.contentDocument || mbFrame.contentWindow.document;
+            var body = doc && doc.body ? doc.body.innerHTML.trim() : '';
+            // Empty body = proxy failed or site blocked embedding
+            if (body.length < 20) { showBlocked(); return; }
+        } catch (e) {
+            // SecurityError = iframe navigated cross-origin (proxy redirect / browser error page)
+            showBlocked(); return;
+        }
         mbLoading.style.display = 'none';
-        mbFrame.style.display = '';
+        mbFrame.style.display   = '';
     });
 
     mbCloseBtn.addEventListener('click', closeModal);
