@@ -28,7 +28,7 @@ if($filter == 'unread') {
     $query .= " AND is_read = 0";
 }
 
-$query .= " ORDER BY created_at DESC OFFSET 0 ROWS FETCH NEXT 50 ROWS ONLY";
+$query .= " ORDER BY created_at DESC LIMIT 50";
 
 $stmt = $conn->prepare($query);
 $stmt->execute($params);
@@ -47,7 +47,7 @@ if(isset($_GET['mark_read']) && isset($_GET['id'])) {
     $notif_id = intval($_GET['id']);
     $mark_stmt = $conn->prepare("
         UPDATE notifications 
-        SET is_read = 1, read_at = GETDATE() 
+        SET is_read = 1, read_at = NOW() 
         WHERE notification_id = ? AND user_id = ?
     ");
     $mark_stmt->execute([$notif_id, $staff_id]);
@@ -59,7 +59,7 @@ if(isset($_GET['mark_read']) && isset($_GET['id'])) {
 if(isset($_GET['mark_all_read'])) {
     $mark_all_stmt = $conn->prepare("
         UPDATE notifications 
-        SET is_read = 1, read_at = GETDATE() 
+        SET is_read = 1, read_at = NOW() 
         WHERE user_id = ? AND user_type = 'staff' AND is_read = 0
     ");
     $mark_all_stmt->execute([$staff_id]);
