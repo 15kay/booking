@@ -17,6 +17,11 @@ $student_id = $_GET['id'];
 $db = new Database();
 $conn = $db->connect();
 
+if(!$conn) {
+    header('Location: ../index.php?error=' . urlencode('Database connection failed. Please try again later.'));
+    exit();
+}
+
 // Get student details
 $stmt = $conn->prepare("
     SELECT s.*, s.faculty_id as faculty_name, NULL as faculty_code
