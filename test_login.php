@@ -28,7 +28,7 @@ try {
 
 // ── Password hash check ───────────────────────────────────────
 echo "<h2>2. Password Hash</h2>";
-$stmt = $conn->query("SELECT TOP 1 password_hash FROM admins");
+$stmt = $conn->query("SELECT password_hash FROM admins LIMIT 1");
 $row  = $stmt->fetch();
 $valid = password_verify('admin123', $row['password_hash']);
 echo $valid
