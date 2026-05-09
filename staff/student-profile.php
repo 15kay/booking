@@ -58,7 +58,7 @@ $stmt = $conn->prepare("
     JOIN staff st ON b.staff_id = st.staff_id
     WHERE b.student_id = ?
     ORDER BY b.booking_date DESC, b.start_time DESC
-    OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY
+    LIMIT 10
 ");
 $stmt->execute([$student_id]);
 $recent_bookings = $stmt->fetchAll();

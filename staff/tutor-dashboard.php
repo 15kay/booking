@@ -59,7 +59,7 @@ $upcoming = $conn->prepare("
     WHERE ta.tutor_id = ? AND ts.status = 'scheduled' AND ts.session_date >= CURDATE()
     GROUP BY ts.session_id
     ORDER BY ts.session_date ASC, ts.start_time ASC
-    OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+    LIMIT 5
 ");
 $upcoming->execute([$tutor_id]);
 $upcoming_sessions = $upcoming->fetchAll();
