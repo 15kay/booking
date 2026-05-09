@@ -21,7 +21,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         // Check if admins table exists, if not use a default admin
-        $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'admins'");
+        $stmt = $conn->prepare("SHOW TABLES LIKE 'admins'");
         $stmt->execute();
         
         if($stmt->rowCount() > 0) {

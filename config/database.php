@@ -1,7 +1,7 @@
 <?php
-define('DB_HOST', 'clestudtrack02.wsu.ac.za');
-define('DB_USER', 'smmakola');
-define('DB_PASS', 'Kgau123@M');
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 define('DB_NAME', 'wsu_booking');
 
 class Database {
@@ -11,7 +11,7 @@ class Database {
         $this->conn = null;
         try {
             $this->conn = new PDO(
-                "sqlsrv:Server=" . DB_HOST . ";Database=" . DB_NAME . ";TrustServerCertificate=1;Encrypt=no",
+                "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8",
                 DB_USER,
                 DB_PASS
             );

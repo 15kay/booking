@@ -55,8 +55,8 @@ $stmt = $conn->prepare("
     FROM bookings b
     JOIN services s ON b.service_id = s.service_id
     JOIN staff st ON b.staff_id = st.staff_id
-    WHERE b.student_id = ? AND b.booking_date >= CAST(GETDATE() AS DATE) AND b.status IN ('pending','confirmed')
-    ORDER BY b.booking_date, b.start_time OFFSET 0 ROWS FETCH NEXT 4 ROWS ONLY
+    WHERE b.student_id = ? AND b.booking_date >= CURDATE() AND b.status IN ('pending','confirmed')
+    ORDER BY b.booking_date, b.start_time LIMIT 4
 ");
 $stmt->execute([$sid]);
 $upcoming = $stmt->fetchAll();
@@ -65,7 +65,7 @@ $upcoming = $stmt->fetchAll();
 $stmt = $conn->prepare("
     SELECT b.*, s.service_name FROM bookings b
     JOIN services s ON b.service_id = s.service_id
-    WHERE b.student_id = ? ORDER BY b.created_at DESC OFFSET 0 ROWS FETCH NEXT 4 ROWS ONLY
+    WHERE b.student_id = ? ORDER BY b.created_at DESC LIMIT 4
 ");
 $stmt->execute([$sid]);
 $recent = $stmt->fetchAll();
